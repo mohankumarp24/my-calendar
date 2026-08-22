@@ -1,4 +1,4 @@
-const CACHE_NAME = "psgim-calendar-v1";
+const CACHE_NAME = "psgim-calendar-v2";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {
@@ -15,11 +15,29 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
+// Network-first for the HTML page itself, so content updates show up
+// immediately whenever there's a connection. Falls back to cache only
+// when offline. Other static assets (icons, manifest) stay cache-first
+// since they rarely change and this keeps things fast/offline-friendly.
 self.addEventListener("fetch", event => {
+  const isHTML = event.request.mode === "navigate" ||
+                 event.request.url.endsWith("/") ||
+                 event.request.url.endsWith("index.html");
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(event.request)
+        .then(res => {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+          return res;
+        })
+        .catch(() => caches.match(event.request).then(c => c || caches.match("./index.html")))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).catch(() => caches.match("./index.html"));
-    })
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });
