@@ -75,12 +75,13 @@
   .seal {
     width: 30px; height: 30px;
     border-radius: 50%;
-    background: var(--gold);
-    color: var(--navy-deep);
+    background: #000000;
+    color: #FFFFFF;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Fraunces', serif;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 11.5px;
+    letter-spacing: 0.2px;
     flex-shrink: 0;
     box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
   }
@@ -195,7 +196,7 @@
     padding: 10px 16px 6px;
     background: var(--paper);
     position: sticky;
-    top: 165px;
+    top: var(--header-h, 165px);
     z-index: 9;
   }
   #searchBox {
@@ -215,7 +216,7 @@
     padding: 4px 16px 8px;
     background: var(--paper);
     position: sticky;
-    top: 220px;
+    top: var(--legend-top, 220px);
     z-index: 8;
     display: flex;
     gap: 6px;
@@ -247,7 +248,7 @@
     box-shadow: 0 1px 3px rgba(30,37,48,0.05);
     margin-bottom: 8px;
     overflow: hidden;
-    scroll-margin-top: 230px;
+    scroll-margin-top: var(--sticky-total, 230px);
     transition: opacity 0.15s ease;
   }
   .row .datecol {
@@ -413,9 +414,9 @@
 </head>
 <body>
 
-<header>
+<header id="pageHeader">
   <div class="brandrow">
-    <div class="seal">P</div>
+    <div class="seal">MK</div>
     <h1>PSG Institute of Management</h1>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">&#9789;</button>
   </div>
@@ -509,6 +510,7 @@ function toggleTheme() {
   const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   applyTheme(cur === 'dark' ? 'light' : 'dark');
   vibrate(8);
+  requestAnimationFrame(updateStickyOffsets);
 }
 (function initTheme() {
   let saved = null;
@@ -579,6 +581,7 @@ document.getElementById('tbMon').textContent = MONTHS[now.getMonth()].slice(0,3)
 
 function jumpToToday() {
   vibrate(8);
+  updateStickyOffsets();
   if (currentView === 'list') {
     if (todayRowEl) todayRowEl.scrollIntoView({behavior: 'smooth', block: 'start'});
   } else {
@@ -717,14 +720,44 @@ function switchTab(view) {
     renderMonth();
     selectDay(selectedDate || todayStr);
   }
+  requestAnimationFrame(updateStickyOffsets);
 }
+
+/* ---------------- STICKY OFFSET MEASUREMENT ----------------
+   The header/search/legend stack height changes with content
+   (theme swap, font load, view switch), so measure it for real
+   instead of hardcoding pixel guesses that drift out of sync. */
+function updateStickyOffsets() {
+  const header = document.getElementById('pageHeader');
+  const searchWrap = document.getElementById('searchWrap');
+  const legendWrap = document.getElementById('legendWrap');
+  if (!header || !searchWrap || !legendWrap) return;
+
+  const headerH = header.offsetHeight;
+  const searchVisible = searchWrap.style.display !== 'none';
+  const searchH = searchVisible ? searchWrap.offsetHeight : 0;
+
+  document.documentElement.style.setProperty('--header-h', headerH + 'px');
+  document.documentElement.style.setProperty('--legend-top', (headerH + searchH) + 'px');
+
+  const legendH = legendWrap.offsetHeight;
+  const totalSticky = headerH + searchH + legendH + 10; // small breathing gap
+  document.documentElement.style.setProperty('--sticky-total', totalSticky + 'px');
+}
+
+window.addEventListener('resize', () => requestAnimationFrame(updateStickyOffsets));
 
 /* ---------------- INIT ---------------- */
 function goToTodayOnLoad() {
+  updateStickyOffsets();
   if (todayRowEl) todayRowEl.scrollIntoView({behavior: 'auto', block: 'start'});
 }
 window.addEventListener('load', () => {
   requestAnimationFrame(() => requestAnimationFrame(goToTodayOnLoad));
+  // Fonts loading async can change header height slightly after first paint
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => requestAnimationFrame(updateStickyOffsets));
+  }
 });
 </script>
 </body>
