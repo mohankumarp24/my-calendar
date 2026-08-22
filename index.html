@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PSGIM Calendar">
+<meta name="theme-color" content="#1F3B5C">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>PSGIM Academic Calendar 2026-27</title>
+<style>
+  :root {
+    --navy: #1F3B5C;
+    --navy-dark: #16293F;
+    --gold: #FFD966;
+    --gold-dark: #C9A400;
+    --bg: #F2F4F7;
+    --text: #1A1A1A;
+    --muted: #6B7280;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--navy);
+    color: white;
+    padding: 14px 16px 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  header h1 {
+    margin: 0; font-size: 17px; font-weight: 700; letter-spacing: 0.2px;
+  }
+  header .sub {
+    margin: 2px 0 10px; font-size: 12px; opacity: 0.85;
+  }
+  #todayCard {
+    background: var(--navy-dark);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 4px;
+  }
+  #todayCard .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  #todayCard .date {
+    font-size: 15px; font-weight: 700; margin-bottom: 4px;
+  }
+  #todayCard .event {
+    font-size: 13px; opacity: 0.92; line-height: 1.35;
+  }
+  #jumpBtn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    background: var(--gold);
+    color: var(--navy-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+  }
+  #jumpBtn:active { transform: scale(0.98); }
+
+  #searchWrap {
+    padding: 10px 16px;
+    background: var(--bg);
+    position: sticky;
+    top: 128px;
+    z-index: 9;
+  }
+  #searchWrap.tall { top: 150px; }
+  #searchBox {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #D1D5DB;
+    font-size: 13px;
+    background: white;
+  }
+
+  main { padding: 4px 12px 40px; }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    padding: 10px 10px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    align-items: flex-start;
+  }
+  .row .datecol {
+    min-width: 62px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .row .datecol .d { font-size: 15px; font-weight: 700; line-height: 1.1; }
+  .row .datecol .m { font-size: 10px; text-transform: uppercase; color: var(--muted); }
+  .row .datecol .day { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .row .particulars {
+    font-size: 13px; line-height: 1.4; padding-top: 1px;
+    white-space: pre-line;
+  }
+  .row.empty .particulars { color: #B0B4BA; font-style: italic; }
+
+  .row.today {
+    border: 2px solid var(--gold-dark);
+    box-shadow: 0 0 0 3px rgba(255,217,102,0.35);
+    font-weight: 700;
+  }
+  .row.today .datecol .d { color: var(--navy); }
+
+  .month-divider {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 4px 6px;
+    opacity: 0.75;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 10.5px;
+    color: var(--muted);
+    padding: 10px 20px 30px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PSG Institute of Management</h1>
+  <div class="sub">Academic Calendar 2026 &ndash; 2027</div>
+  <div id="todayCard">
+    <div class="label">Today</div>
+    <div class="date" id="todayDate">&nbsp;</div>
+    <div class="event" id="todayEvent">&nbsp;</div>
+    <button id="jumpBtn" onclick="jumpToToday()">&#9654; GO TO TODAY</button>
+  </div>
+</header>
+
+<div id="searchWrap">
+  <input type="text" id="searchBox" placeholder="Search events (e.g. exam, holiday, viva)..." oninput="filterRows()">
+</div>
+
+<main id="listContainer"></main>
+
+<footer>Colours match the original PSGIM calendar file &middot; Today auto-updates from your device's date</footer>
+
+<script>
+const DATA = [{"date": "2026-07-20", "day": "Mon", "particulars": "II MBA / II MBA WMSE - Semester III Commences - Meeting with Director / \nCommencement of Project phase I", "color": null}, {"date": "2026-07-21", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-07-22", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-07-23", "day": "Thu", "particulars": "CRMT - 2026 - International Conference", "color": null}, {"date": "2026-07-24", "day": "Fri", "particulars": "CRMT - 2026 - International Conference", "color": null}, {"date": "2026-07-25", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-07-26", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2026-07-27", "day": "Mon", "particulars": "Board Room Simulation for II MBA", "color": null}, {"date": "2026-07-28", "day": "Tue", "particulars": "Board Room Simulation for II MBA", "color": null}, {"date": "2026-07-29", "day": "Wed", "particulars": "II Year - MBA / MBA (WMSE)  Internship Poster Presentation", "color": null}, {"date": "2026-07-30", "day": "Thu", "particulars": "Board Room Simulation for II MBA", "color": null}, {"date": "2026-07-31", "day": "Fri", "particulars": "Board Room Simulation for II MBA", "color": null}, {"date": "2026-08-01", "day": "Sat", "particulars": "Board Room Simulation for II MBA", "color": "#B6D7A8"}, {"date": "2026-08-02", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-08-03", "day": "Mon", "particulars": "II MBA Project Work / \nI MBA  Induction  MBA , MBA WMSE,ISW and IMBA", "color": null}, {"date": "2026-08-04", "day": "Tue", "particulars": "II year NKU Semester III begins/ I MBA induction/ Integrated MBA Induction", "color": null}, {"date": "2026-08-05", "day": "Wed", "particulars": "II MBA Project Work / \n/I MBA induction/Integrated MBA Induction", "color": null}, {"date": "2026-08-06", "day": "Thu", "particulars": "II MBA Project Work / \nInduction / II Year NKU Internship Viva", "color": null}, {"date": "2026-08-07", "day": "Fri", "particulars": "Summer courses ends for II year UT /\nI Year MBA - Induction - ALPS Visit", "color": null}, {"date": "2026-08-08", "day": "Sat", "particulars": "I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students", "color": "#93C47D"}, {"date": "2026-08-09", "day": "Sun", "particulars": "I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students", "color": "#93C47D"}, {"date": "2026-08-10", "day": "Mon", "particulars": "II year  MBA placement training / I MBA Induction", "color": null}, {"date": "2026-08-11", "day": "Tue", "particulars": "II year  MBA placement training / I MBA Induction", "color": null}, {"date": "2026-08-12", "day": "Wed", "particulars": "II year  MBA placement training / I MBA Induction", "color": null}, {"date": "2026-08-13", "day": "Thu", "particulars": "II year  MBA placement training / I MBA Induction", "color": null}, {"date": "2026-08-14", "day": "Fri", "particulars": "II year  MBA placement training / I MBA Induction", "color": null}, {"date": "2026-08-15", "day": "Sat", "particulars": "Independence Day/ I MBA induction/ Integrated MBA Induction", "color": "#93C47D"}, {"date": "2026-08-16", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2026-08-17", "day": "Mon", "particulars": "II year MBA regular classes resume/ \nI Year MBA, MBA(WMSE), MBA(ISW) and IMBA Classes Commence", "color": null}, {"date": "2026-08-18", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-08-19", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-08-20", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-08-21", "day": "Fri", "particulars": "", "color": "#FFFFFF"}, {"date": "2026-08-22", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-08-23", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-08-24", "day": "Mon", "particulars": "Week of Games / II MBA Project viva Phase I - WEEK", "color": "#FFFFFF"}, {"date": "2026-08-25", "day": "Tue", "particulars": "Week of Games", "color": "#FFFFFF"}, {"date": "2026-08-26", "day": "Wed", "particulars": "Holiday - Miladi Nabi / Onam", "color": "#EA9999"}, {"date": "2026-08-27", "day": "Thu", "particulars": "Week of Games", "color": "#FFFFFF"}, {"date": "2026-08-28", "day": "Fri", "particulars": "Week of Games", "color": "#FFFFFF"}, {"date": "2026-08-29", "day": "Sat", "particulars": "Finance Bootcamp - II Year MBA Students", "color": "#B6D7A8"}, {"date": "2026-08-30", "day": "Sun", "particulars": "Finance Bootcamp - II Year MBA Students", "color": "#B6D7A8"}, {"date": "2026-08-31", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-09-01", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-09-02", "day": "Wed", "particulars": "Foundation Day", "color": null}, {"date": "2026-09-03", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-09-04", "day": "Fri", "particulars": "Holiday - Krishna Jayanthi", "color": "#EA9999"}, {"date": "2026-09-05", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-09-06", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-09-07", "day": "Mon", "particulars": "WOW", "color": "#FFFFFF"}, {"date": "2026-09-08", "day": "Tue", "particulars": "WOW", "color": null}, {"date": "2026-09-09", "day": "Wed", "particulars": "WOW", "color": null}, {"date": "2026-09-10", "day": "Thu", "particulars": "WOW", "color": null}, {"date": "2026-09-11", "day": "Fri", "particulars": "WOW", "color": null}, {"date": "2026-09-12", "day": "Sat", "particulars": "WOW Finale", "color": "#B6D7A8"}, {"date": "2026-09-13", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-09-14", "day": "Mon", "particulars": "Holiday - vinayagar chaturthi", "color": "#EA9999"}, {"date": "2026-09-15", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-09-16", "day": "Wed", "particulars": "Class committee meeting - I for Integrated MBA 1st Semester", "color": null}, {"date": "2026-09-17", "day": "Thu", "particulars": "Class committee meeting I for I year  MBA / MBA WMSE and UT, NKU, IIT & LBU", "color": null}, {"date": "2026-09-18", "day": "Fri", "particulars": "", "color": null}, {"date": "2026-09-19", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-09-20", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-09-21", "day": "Mon", "particulars": "Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT", "color": null}, {"date": "2026-09-22", "day": "Tue", "particulars": "Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT", "color": null}, {"date": "2026-09-23", "day": "Wed", "particulars": "Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT", "color": null}, {"date": "2026-09-24", "day": "Thu", "particulars": "Mid term examination for I Yr UT,NKU, LBU , IIT/ Class committee meeting -I  for II year UT,  NKU,  MBA, & WMSE", "color": null}, {"date": "2026-09-25", "day": "Fri", "particulars": "TEAM-ALPS for First Year MBA Batch-1", "color": null}, {"date": "2026-09-26", "day": "Sat", "particulars": "TEAM-ALPS for First Year MBA Batch-1", "color": "#B6D7A8"}, {"date": "2026-09-27", "day": "Sun", "particulars": "TEAM-ALPS for First Year MBA Batch-1", "color": "#B6D7A8"}, {"date": "2026-09-28", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-09-29", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-09-30", "day": "Wed", "particulars": "Class committee meeting- II for I year LBU", "color": null}, {"date": "2026-10-01", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-10-02", "day": "Fri", "particulars": "Holiday - Gandhi Jayanthi", "color": "#EA9999"}, {"date": "2026-10-03", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-10-04", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-10-05", "day": "Mon", "particulars": "Project Interim Review  Week", "color": null}, {"date": "2026-10-06", "day": "Tue", "particulars": "Project Interim Review  Week", "color": null}, {"date": "2026-10-07", "day": "Wed", "particulars": "Project Interim Review  Week / Class committee meeting- III for I year LBU", "color": null}, {"date": "2026-10-08", "day": "Thu", "particulars": "Project Interim Review  Week", "color": null}, {"date": "2026-10-09", "day": "Fri", "particulars": "Talent Night / Last Working Day for LBU", "color": null}, {"date": "2026-10-10", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-10-11", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-10-12", "day": "Mon", "particulars": "Class committee meeting - II for Integrated MBA 1st Semester / Semester Exam commence for LBU", "color": null}, {"date": "2026-10-13", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-10-14", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-10-15", "day": "Thu", "particulars": "Class committee meeting- II for I year UT,  NKU,  IIT,  MBA, & WMSE/ II MBA & WMSE - Project Interim Review", "color": null}, {"date": "2026-10-16", "day": "Fri", "particulars": "Semester Exam end for LBU", "color": null}, {"date": "2026-10-17", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-10-18", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-10-19", "day": "Mon", "particulars": "Holiday - Saraswathi Pooja", "color": "#EA9999"}, {"date": "2026-10-20", "day": "Tue", "particulars": "Holiday - Vijayadashami", "color": "#EA9999"}, {"date": "2026-10-21", "day": "Wed", "particulars": "Mid term examination - 2 for Integrated MBA 1st Semester", "color": null}, {"date": "2026-10-22", "day": "Thu", "particulars": "Mid term examination - 2 for Integrated MBA 1st Semester", "color": null}, {"date": "2026-10-23", "day": "Fri", "particulars": "Mid term examination - 2 for Integrated MBA 1st Semester / TEAM-ALPS for First Year MBA Batch-2", "color": null}, {"date": "2026-10-24", "day": "Sat", "particulars": "Publication of LBU Results / TEAM-ALPS for First Year MBA Batch-2", "color": "#B6D7A8"}, {"date": "2026-10-25", "day": "Sun", "particulars": "TEAM-ALPS for First Year MBA Batch-2", "color": "#B6D7A8"}, {"date": "2026-10-26", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-10-27", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-10-28", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-10-29", "day": "Thu", "particulars": "Class Committee Meeting-II for II Year UT, NKU, Anna & WMSE / \nClass committee meeting- II for II year UT,  NKU,  IIT,  MBA, & WMSE", "color": null}, {"date": "2026-10-30", "day": "Fri", "particulars": "TEAM-ALPS for First Year MBA Batch-3", "color": null}, {"date": "2026-10-31", "day": "Sat", "particulars": "TEAM-ALPS for First Year MBA Batch-3", "color": "#B6D7A8"}, {"date": "2026-11-01", "day": "Sun", "particulars": "TEAM-ALPS for First Year MBA Batch-3", "color": "#B6D7A8"}, {"date": "2026-11-02", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-11-03", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-11-04", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-11-05", "day": "Thu", "particulars": "Project Phase II Report Submission", "color": null}, {"date": "2026-11-06", "day": "Fri", "particulars": "Diwali Celebration in Manavar Illam/ Last Working Day for I Year UT, NKU & IIT", "color": null}, {"date": "2026-11-07", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-11-08", "day": "Sun", "particulars": "Holiay- Diwali", "color": "#B6D7A8"}, {"date": "2026-11-09", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-11-10", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-11-11", "day": "Wed", "particulars": "Class committee meeting - III for Integrated MBA 1st Semester", "color": "#FFFFFF"}, {"date": "2026-11-12", "day": "Thu", "particulars": "Class committee meeting - III for I MBA & MBA WMSE , UT, NKU and IIT", "color": null}, {"date": "2026-11-13", "day": "Fri", "particulars": "Project Viva Voce - II MBA & WMSE / TEAM-ALPS for First Year MBA ISW", "color": null}, {"date": "2026-11-14", "day": "Sat", "particulars": "TEAM-ALPS for First Year MBA ISW", "color": "#B6D7A8"}, {"date": "2026-11-15", "day": "Sun", "particulars": "TEAM-ALPS for First Year MBA ISW", "color": "#B6D7A8"}, {"date": "2026-11-16", "day": "Mon", "particulars": "Semester III Exam begins for II Year MBA, WMSE, UT & NKU", "color": null}, {"date": "2026-11-17", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-11-18", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-11-19", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-11-20", "day": "Fri", "particulars": "Social Sensitiation for Managers Viva I MBA /\nLast Working day for II Year MBA & WMSE, UT & NKU / I year UT,NKU & IIT", "color": null}, {"date": "2026-11-21", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2026-11-22", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2026-11-23", "day": "Mon", "particulars": "Semester III Exam begins for II Year MBA, WMSE, UT ,NKU & IIT / Semester-I  exams begins I-year UT,NKU & IIT", "color": null}, {"date": "2026-11-24", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-11-25", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-11-26", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-11-27", "day": "Fri", "particulars": "Last Working day for I year MBA & WMSE and  Integrated MBA 1st Semester", "color": null}, {"date": "2026-11-28", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-11-29", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-11-30", "day": "Mon", "particulars": "End Semester Exam begins for I MBA , MBA  WMSE and  Integrated MBA / Semester Exam end for I-year UT,NKU &IIT", "color": null}, {"date": "2026-12-01", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-12-02", "day": "Wed", "particulars": "Semester II Class Commence for I Year UT & NKU\nSemester IV class commence for II Year MBA, WMSE & NKU,UT\nCapstone course commence for II year UT (Tentative)", "color": null}, {"date": "2026-12-03", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-12-04", "day": "Fri", "particulars": "", "color": "#FFFFFF"}, {"date": "2026-12-05", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-12-06", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-12-07", "day": "Mon", "particulars": "Class Commenses for  I year MBA / MBA WMSE/ Semester II class commences for Integrated MBA", "color": null}, {"date": "2026-12-08", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-12-09", "day": "Wed", "particulars": "Semester IV class commence for II Year MBA, WMSE & NKU,UT", "color": null}, {"date": "2026-12-10", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-12-11", "day": "Fri", "particulars": "", "color": null}, {"date": "2026-12-12", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2026-12-13", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2026-12-14", "day": "Mon", "particulars": "", "color": "#FFFFFF"}, {"date": "2026-12-15", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-12-16", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-12-17", "day": "Thu", "particulars": "AIMS Convention", "color": null}, {"date": "2026-12-18", "day": "Fri", "particulars": "Capstone course end for UT (Tentative)/AIMS Convention", "color": null}, {"date": "2026-12-19", "day": "Sat", "particulars": "Rapport /AIMS Convention", "color": "#B6D7A8"}, {"date": "2026-12-20", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-12-21", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-12-22", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-12-23", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-12-24", "day": "Thu", "particulars": "", "color": null}, {"date": "2026-12-25", "day": "Fri", "particulars": "Holiday - Christmas", "color": "#EA9999"}, {"date": "2026-12-26", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-12-27", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2026-12-28", "day": "Mon", "particulars": "", "color": null}, {"date": "2026-12-29", "day": "Tue", "particulars": "", "color": null}, {"date": "2026-12-30", "day": "Wed", "particulars": "", "color": null}, {"date": "2026-12-31", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-01-01", "day": "Fri", "particulars": "Holiday - New Year", "color": "#EA9999"}, {"date": "2027-01-02", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-01-03", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-01-04", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-01-05", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-01-06", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-01-07", "day": "Thu", "particulars": "Class Committee Meeting -I for II Year MBA, WMSE & NKU", "color": null}, {"date": "2027-01-08", "day": "Fri", "particulars": "Class Committee Meeting -I for I year MBA & WMSE", "color": null}, {"date": "2027-01-09", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-01-10", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-01-11", "day": "Mon", "particulars": "Semester-II exam begins for I year UT & NKU/ Class Committee Meeting -I for Integrated MBA 2nd Semester", "color": "#FFFFFF"}, {"date": "2027-01-12", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-01-13", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-01-14", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-01-15", "day": "Fri", "particulars": "Holiday - Pongal", "color": "#EA9999"}, {"date": "2027-01-16", "day": "Sat", "particulars": "Holiday - Thiruvalluvar Day", "color": "#EA9999"}, {"date": "2027-01-17", "day": "Sun", "particulars": "Holiday - Uzhavar Thirunal", "color": "#EA9999"}, {"date": "2027-01-18", "day": "Mon", "particulars": "Mid term Examination for I year MBA & WMSE/ Mid term Examination for Integrated MBA 2nd Semester", "color": null}, {"date": "2027-01-19", "day": "Tue", "particulars": "Mid term Examination for I year MBA & WMSE / Spring Courses commence for I year NKU/ Mid term Examination for Integrated MBA 2nd Semester", "color": null}, {"date": "2027-01-20", "day": "Wed", "particulars": "Mid term Examination for I year MBA & WMSE / Mid term Examination for Integrated MBA 2nd Semester", "color": null}, {"date": "2027-01-21", "day": "Thu", "particulars": "Class Committee Meeting -I for II Year MBA, WMSE & NKU ,UT", "color": null}, {"date": "2027-01-22", "day": "Fri", "particulars": "Srijana 2026", "color": null}, {"date": "2027-01-23", "day": "Sat", "particulars": "Srijana 2026", "color": "#B6D7A8"}, {"date": "2027-01-24", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-01-25", "day": "Mon", "particulars": "", "color": "#FFFFFF"}, {"date": "2027-01-26", "day": "Tue", "particulars": "Holiday - Republic Day/ GIP", "color": "#EA9999"}, {"date": "2027-01-27", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-01-28", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-01-29", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-01-30", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-01-31", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-02-01", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-02-02", "day": "Tue", "particulars": "C.R.Swaminathan Endowment Lecture", "color": null}, {"date": "2027-02-03", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-02-04", "day": "Thu", "particulars": "Summer Internship Begins -First Year UT", "color": null}, {"date": "2027-02-05", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-02-06", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2027-02-07", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2027-02-08", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-02-09", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-02-10", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-02-11", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-02-12", "day": "Fri", "particulars": "Class Committee Meeting -II for Integrated MBA 2nd Semester", "color": null}, {"date": "2027-02-13", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-02-14", "day": "Sun", "particulars": "GIP", "color": "#B6D7A8"}, {"date": "2027-02-15", "day": "Mon", "particulars": "GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester", "color": "#FFFFFF"}, {"date": "2027-02-16", "day": "Tue", "particulars": "GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester", "color": "#FFFFFF"}, {"date": "2027-02-17", "day": "Wed", "particulars": "GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester", "color": "#FFFFFF"}, {"date": "2027-02-18", "day": "Thu", "particulars": "GIP              Class Committee Meeting - II for II year MBA, WMSE & NKU", "color": null}, {"date": "2027-02-19", "day": "Fri", "particulars": "GIP / Class Committee Meeting - II for I year MBA, WMSE & NKU", "color": null}, {"date": "2027-02-20", "day": "Sat", "particulars": "GIP", "color": "#93C47D"}, {"date": "2027-02-21", "day": "Sun", "particulars": "GIP", "color": "#93C47D"}, {"date": "2027-02-22", "day": "Mon", "particulars": "GIP", "color": "#FFFFFF"}, {"date": "2027-02-23", "day": "Tue", "particulars": "GIP", "color": "#FFFFFF"}, {"date": "2027-02-24", "day": "Wed", "particulars": "GIP", "color": null}, {"date": "2027-02-25", "day": "Thu", "particulars": "GIP / Class Committee Meeting - II for II year MBA, WMSE & NKU,UT", "color": "#FFFFFF"}, {"date": "2027-02-26", "day": "Fri", "particulars": "GIP", "color": "#FFFFFF"}, {"date": "2027-02-27", "day": "Sat", "particulars": "GIP / II MBA & WMSE - Completion of Project", "color": "#B6D7A8"}, {"date": "2027-02-28", "day": "Sun", "particulars": "GIP", "color": "#B6D7A8"}, {"date": "2027-03-01", "day": "Mon", "particulars": "Last day for submission of Internship companies to Program office for I year NKU", "color": null}, {"date": "2027-03-02", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-03-03", "day": "Wed", "particulars": "AIMA NSMG 2027", "color": null}, {"date": "2027-03-04", "day": "Thu", "particulars": "AIMA NSMG 2027", "color": null}, {"date": "2027-03-05", "day": "Fri", "particulars": "AIMA NSMG 2027", "color": null}, {"date": "2027-03-06", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-03-07", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-03-08", "day": "Mon", "particulars": "International Women's day 2027/ Capstone Course commence for II Year NKU", "color": null}, {"date": "2027-03-09", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-03-10", "day": "Wed", "particulars": "Holiday Ramzan", "color": "#EA9999"}, {"date": "2027-03-11", "day": "Thu", "particulars": "Class Committee Meeting - II for I year MBA, WMSE & NKU", "color": null}, {"date": "2027-03-12", "day": "Fri", "particulars": "Class Committee meeting- III for Integrated MBA 2nd Semester / Annual Day 2027", "color": null}, {"date": "2027-03-13", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-03-14", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-03-15", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-03-16", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-03-17", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-03-18", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-03-19", "day": "Fri", "particulars": "Last Working Day for II Year MBA & WMSE ,UT,NKU", "color": null}, {"date": "2027-03-20", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2027-03-21", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2027-03-22", "day": "Mon", "particulars": "Semester IV exam begins for II Year Anna & WMSE,UT,NKU", "color": null}, {"date": "2027-03-23", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-03-24", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-03-25", "day": "Thu", "particulars": "Capstone Course End for II Year NKU / Last Working Day for II Year MBA & WMSE ,UT,NKU", "color": null}, {"date": "2027-03-26", "day": "Fri", "particulars": "Holiday - Good Friday", "color": "#EA9999"}, {"date": "2027-03-27", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2027-03-28", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2027-03-29", "day": "Mon", "particulars": "Semester IV exam begins for II Year Anna & WMSE,UT,NKU", "color": null}, {"date": "2027-03-30", "day": "Tue", "particulars": "Last day for submission of Internship companies to Program office for I MBA & WMSE", "color": null}, {"date": "2027-03-31", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-04-01", "day": "Thu", "particulars": "Class Committe meeting- III for I year MBA & WMSE", "color": null}, {"date": "2027-04-02", "day": "Fri", "particulars": "Spring Courses Ends for I year NKU/ Last Working Day for Integrated MBA 2nd Semester", "color": null}, {"date": "2027-04-03", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-04-04", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-04-05", "day": "Mon", "particulars": "Summer Internship Begins for I year NKU/ Semester II Examinations begins for Integrated MBA 2nd Semester", "color": null}, {"date": "2027-04-06", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-04-07", "day": "Wed", "particulars": "Holiday -  Telugu New Year's Day", "color": "#EA9999"}, {"date": "2027-04-08", "day": "Thu", "particulars": "Business Immersion Viva for I MBA", "color": null}, {"date": "2027-04-09", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-04-10", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-04-11", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-04-12", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-04-13", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-04-14", "day": "Wed", "particulars": "Holiday - Tamil New Year", "color": "#EA9999"}, {"date": "2027-04-15", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-04-16", "day": "Fri", "particulars": "Last Working Day for I Year MBA & WMSE", "color": null}, {"date": "2027-04-17", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2027-04-18", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2027-04-19", "day": "Mon", "particulars": "Holiday - Mahaveer Jayanthi", "color": "#EA9999"}, {"date": "2027-04-20", "day": "Tue", "particulars": "Semeter Exam II begins for I MBA & WMSE", "color": null}, {"date": "2027-04-21", "day": "Wed", "particulars": "Summer Intership end-First Year UT", "color": null}, {"date": "2027-04-22", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-04-23", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-04-24", "day": "Sat", "particulars": "", "color": "#93C47D"}, {"date": "2027-04-25", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2027-04-26", "day": "Mon", "particulars": "Summer Courses commence for I year UT (Tentative)", "color": null}, {"date": "2027-04-27", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-04-28", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-04-29", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-04-30", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-05-01", "day": "Sat", "particulars": "Holiday - May Day", "color": "#93C47D"}, {"date": "2027-05-02", "day": "Sun", "particulars": "", "color": "#93C47D"}, {"date": "2027-05-03", "day": "Mon", "particulars": "I MBA  Internship Begins", "color": null}, {"date": "2027-05-04", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-05-05", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-05-06", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-05-07", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-05-08", "day": "Sat", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-05-09", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-05-10", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-05-11", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-05-12", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-05-13", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-05-14", "day": "Fri", "particulars": "", "color": null}, {"date": "2027-05-15", "day": "Sat", "particulars": "Commencement Ceremony for II year MBA- Anna, WMSE, UT and NKU", "color": "#B6D7A8"}, {"date": "2027-05-16", "day": "Sun", "particulars": "", "color": "#B6D7A8"}, {"date": "2027-05-17", "day": "Mon", "particulars": "", "color": null}, {"date": "2027-05-18", "day": "Tue", "particulars": "", "color": null}, {"date": "2027-05-19", "day": "Wed", "particulars": "", "color": null}, {"date": "2027-05-20", "day": "Thu", "particulars": "", "color": null}, {"date": "2027-05-21", "day": "Fri", "particulars": "", "color": null}]
+;
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYNAMES = {Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday",Sat:"Saturday",Sun:"Sunday"};
+
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+"-"+m+"-"+day;
+}
+
+function fmtDate(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  return {day: d, month: MONTHS[m-1].slice(0,3), monthFull: MONTHS[m-1], year: y};
+}
+
+const container = document.getElementById('listContainer');
+const todayStr = todayISO();
+let lastMonth = null;
+let todayRowEl = null;
+
+DATA.forEach(item => {
+  const {day, month} = fmtDate(item.date);
+  const monthKey = item.date.slice(0,7);
+  if (monthKey !== lastMonth) {
+    const divider = document.createElement('div');
+    divider.className = 'month-divider';
+    const f = fmtDate(item.date);
+    divider.textContent = f.monthFull + " " + f.year;
+    container.appendChild(divider);
+    lastMonth = monthKey;
+  }
+
+  const row = document.createElement('div');
+  row.className = 'row' + (item.particulars ? '' : ' empty');
+  row.dataset.search = (item.particulars || '').toLowerCase();
+  row.dataset.date = item.date;
+
+  if (item.date === todayStr) {
+    row.classList.add('today');
+    row.style.background = item.color || '#FFFFFF';
+    todayRowEl = row;
+  } else {
+    row.style.background = item.color || '#FFFFFF';
+  }
+
+  row.innerHTML = `
+    <div class="datecol">
+      <div class="d">${day}</div>
+      <div class="m">${month}</div>
+      <div class="day">${item.day}</div>
+    </div>
+    <div class="particulars">${item.particulars ? item.particulars.replace(/\n/g,'<br>') : 'No events listed'}</div>
+  `;
+  container.appendChild(row);
+});
+
+// Populate today card
+const todayData = DATA.find(d => d.date === todayStr);
+const now = new Date();
+const dayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][now.getDay()];
+document.getElementById('todayDate').textContent = dayName + ", " + now.getDate() + " " + MONTHS[now.getMonth()] + " " + now.getFullYear();
+document.getElementById('todayEvent').textContent = todayData
+  ? (todayData.particulars || "No events listed for today.")
+  : "Today falls outside the calendar range.";
+
+function jumpToToday() {
+  if (todayRowEl) {
+    todayRowEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+}
+
+function filterRows() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const rows = document.querySelectorAll('.row');
+  rows.forEach(r => {
+    const match = !q || r.dataset.search.includes(q) || r.dataset.date.includes(q);
+    r.style.display = match ? 'flex' : 'none';
+  });
+  const dividers = document.querySelectorAll('.month-divider');
+  dividers.forEach(dv => dv.style.display = q ? 'none' : 'block');
+}
+
+// Auto-scroll to today on load
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (todayRowEl) {
+      todayRowEl.scrollIntoView({behavior: 'auto', block: 'start'});
+      window.scrollBy(0, -20);
+    }
+  }, 100);
+});
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
