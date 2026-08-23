@@ -476,9 +476,9 @@
 </main>
 
 <div id="fabWrap">
-  <button class="fab" onclick="scrollToTopBottom('top')" aria-label="Scroll to top">&#8593;</button>
+  <button class="fab" id="fabTop" onclick="scrollToTopBottom('top')" aria-label="Scroll to top">&#8593;</button>
   <button class="fab gold" onclick="jumpToToday()" aria-label="Jump to today">&#9673;</button>
-  <button class="fab" onclick="scrollToTopBottom('bottom')" aria-label="Scroll to bottom">&#8595;</button>
+  <button class="fab" id="fabBottom" onclick="scrollToTopBottom('bottom')" aria-label="Scroll to bottom">&#8595;</button>
 </div>
 
 <footer>Colours match the original PSGIM calendar file &middot; Today auto-updates from your device's date</footer>
@@ -492,6 +492,13 @@ function todayISO() {
   const d = new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
 }
+// A plain white fill in the source spreadsheet means "no highlight", same as
+// no fill at all - only treat it as a real colour if it's not white, so it
+// doesn't force a jarring solid-white card in dark mode.
+function hasRealColor(item) {
+  return !!(item && item.color && item.color.toUpperCase() !== '#FFFFFF');
+}
+
 function fmtDate(iso) {
   const [y,m,d] = iso.split('-').map(Number);
   return {day: d, month: MONTHS[m-1].slice(0,3), monthFull: MONTHS[m-1], year: y, m: m};
@@ -556,11 +563,11 @@ DATA.forEach(item => {
     lastMonth = monthKey;
   }
   const row = document.createElement('div');
-  row.className = 'row' + (item.particulars ? '' : ' empty') + (item.color ? ' tinted' : '');
+  row.className = 'row' + (item.particulars ? '' : ' empty') + (hasRealColor(item) ? ' tinted' : '');
   row.dataset.search = (item.particulars || '').toLowerCase();
   row.dataset.date = item.date;
   row.dataset.cat = item.cat || '';
-  row.style.background = item.color || '';
+  row.style.background = hasRealColor(item) ? item.color : '';
   if (item.date === todayStr) {
     row.classList.add('today');
     todayRowEl = row;
@@ -667,13 +674,13 @@ function renderMonth() {
     const item = dataByDate[iso];
     const hasEvent = !!(item && item.particulars);
     const cell = document.createElement('div');
-    let cls = 'cell' + (hasEvent ? ' has-event' : '') + (item && item.color ? ' tinted' : '');
+    let cls = 'cell' + (hasEvent ? ' has-event' : '') + (hasRealColor(item) ? ' tinted' : '');
     if (iso === todayStr) cls += ' today';
     if (iso === selectedDate) cls += ' selected';
     if (currentCategory !== 'all' && (!item || item.cat !== currentCategory)) cls += ' dim';
     cell.className = cls;
     cell.dataset.date = iso;
-    if (item && item.color) cell.style.background = item.color;
+    if (hasRealColor(item)) cell.style.background = item.color;
     cell.innerHTML = `<div class="num">${d}</div>` + (hasEvent ? `<div class="bar" style="${item.cat && CAT_COLORS[item.cat] ? 'background:'+CAT_COLORS[item.cat]+';opacity:0.85' : ''}"></div>` : '');
     cell.onclick = () => selectDay(iso);
     grid.appendChild(cell);
@@ -721,6 +728,8 @@ function switchTab(view) {
   document.getElementById('listContainer').style.display = view==='list' ? 'block' : 'none';
   document.getElementById('searchWrap').style.display = view==='list' ? 'block' : 'none';
   document.getElementById('monthView').style.display = view==='month' ? 'block' : 'none';
+  document.getElementById('fabTop').style.display = view==='list' ? 'flex' : 'none';
+  document.getElementById('fabBottom').style.display = view==='list' ? 'flex' : 'none';
   vibrate(6);
   if (view === 'month') {
     renderMonth();
@@ -752,6 +761,26 @@ function updateStickyOffsets() {
 }
 
 window.addEventListener('resize', () => requestAnimationFrame(updateStickyOffsets));
+
+/* ---------------- AUTO-REFRESH ON DATE CHANGE ----------------
+   If the app was left open in the background overnight (common with
+   installed PWAs that get suspended rather than fully closed), the page
+   never re-runs its "what is today" logic until something reloads it.
+   Fix: whenever the app becomes visible again, or every few minutes while
+   it's open, check the real device date against what was loaded - if it
+   has moved on to a new day, reload automatically so "today" is correct. */
+const loadedDateStr = todayStr;
+function checkDateAndRefresh() {
+  const currentReal = todayISO();
+  if (currentReal !== loadedDateStr) {
+    location.reload();
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkDateAndRefresh();
+});
+window.addEventListener('focus', checkDateAndRefresh);
+setInterval(checkDateAndRefresh, 5 * 60 * 1000); // safety net every 5 min while open
 
 /* ---------------- INIT ---------------- */
 function goToTodayOnLoad() {
