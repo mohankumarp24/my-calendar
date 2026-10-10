@@ -1,4 +1,5 @@
-const CACHE_NAME = "psgim-calendar-v2";
+const CACHE_PREFIX = "psgim-calendar-";
+const CACHE_NAME = CACHE_PREFIX + "v3";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {
@@ -6,38 +7,36 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
+// Only clear this app's old caches. The timetable lives on the same
+// github.io origin, so deleting every other cache would wipe its offline copy.
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Network-first for the HTML page itself, so content updates show up
-// immediately whenever there's a connection. Falls back to cache only
-// when offline. Other static assets (icons, manifest) stay cache-first
-// since they rarely change and this keeps things fast/offline-friendly.
+// Network-first for the page so updates land immediately when online;
+// falls back to the cached copy offline. Icons/manifest stay cache-first.
 self.addEventListener("fetch", event => {
-  const isHTML = event.request.mode === "navigate" ||
-                 event.request.url.endsWith("/") ||
-                 event.request.url.endsWith("index.html");
+  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  const isHTML = event.request.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith("index.html");
 
   if (isHTML) {
     event.respondWith(
       fetch(event.request)
         .then(res => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
           return res;
         })
-        .catch(() => caches.match(event.request).then(c => c || caches.match("./index.html")))
+        .catch(() => caches.match("./index.html").then(c => c || caches.match("./")))
     );
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
-  );
+  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
 });

@@ -2,798 +2,1527 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PSGIM Calendar">
-<meta name="theme-color" content="#0F2338">
+<meta name="apple-mobile-web-app-title" content="Calendar">
+<meta name="theme-color" id="themeColorMeta" content="#12161C">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>PSGIM Academic Calendar 2026-27</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Academic Calendar — PSGIM</title>
+<script>
+  /* Apply the saved theme before first paint so there's no flash. */
+  (function(){
+    var t = null;
+    try { t = localStorage.getItem('psgim-cal-theme'); } catch(e){}
+    if(!t && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) t = 'light';
+    document.documentElement.setAttribute('data-theme', t || 'dark');
+  })();
+</script>
 <style>
-  :root {
-    --navy: #1B3A5C;
-    --navy-deep: #0F2338;
-    --gold: #D9A441;
-    --gold-soft: #F0C878;
-    --paper: #F6F3EC;
-    --card: #FFFFFF;
-    --ink: #1E2530;
-    --muted: #7A7568;
-    --line: #E4DFD2;
-    --date-num: #1B3A5C;
-    --heading-accent: #1B3A5C;
-    --cat-holiday: #C0392B;
-    --cat-exam: #2E5FA3;
-    --cat-placement: #6B4FA0;
-    --cat-event: #1E7F72;
+  /* ============ TOKENS (shared with the Sem III timetable) ============ */
+  :root{
+    --ink:#0B0D12; --panel:#12161C; --panel-soft:#171C23; --panel-raised:#1F252E;
+    --line:rgba(255,255,255,0.07); --line-strong:rgba(255,255,255,0.13);
+    --text:#EEF0F3; --text-dim:#9AA1AD; --text-faint:#5E6572;
+    --amber:#FFB020; --amber-ink:#1A1306; --amber-soft:rgba(255,176,32,0.14); --live:#5FD68A;
+    --c-holiday:#FF6B6B; --c-exam:#5B8DEF; --c-placement:#A67CF0; --c-event:#3FBFA5; --c-weekend:#6FBF5B;
+    --radius:16px; --safe-b:env(safe-area-inset-bottom, 0px); --hdr:64px;
+    --ease:cubic-bezier(.3,.9,.3,1); --spring:cubic-bezier(.34,1.5,.64,1);
   }
-  [data-theme="dark"] {
-    --navy: #16304C;
-    --navy-deep: #0A1A2B;
-    --paper: #14181F;
-    --card: #1E242D;
-    --ink: #E9E6DD;
-    --muted: #8B8778;
-    --line: #2C323C;
-    --date-num: #8FB4E8;
-    --heading-accent: #8FB4E8;
+  [data-theme="light"]{
+    --ink:#ECEEF1; --panel:#FFFFFF; --panel-soft:#F6F7F9; --panel-raised:#E6E9EE;
+    --line:rgba(16,22,32,0.07); --line-strong:rgba(16,22,32,0.13);
+    --text:#14171C; --text-dim:#5B626E; --text-faint:#98A0AC;
+    --amber:#B87400; --amber-ink:#FFFFFF; --amber-soft:rgba(184,116,0,0.12); --live:#17864B;
+    --c-holiday:#D64545; --c-exam:#2F6FDB; --c-placement:#7A4FD0; --c-event:#16917B; --c-weekend:#3E9A35;
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    margin: 0; padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    font-weight: 500;
-  }
-  html { scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    * { transition: none !important; animation: none !important; }
-  }
-  body { transition: background 0.25s ease, color 0.25s ease; }
-  .serif { font-family: 'Fraunces', Georgia, serif; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0; padding:0; background:var(--ink); color:var(--text); font-family:'Inter',-apple-system,sans-serif; font-weight:500;}
+  body{transition:background .25s ease, color .25s ease; padding-bottom:calc(78px + var(--safe-b)); overflow-x:hidden;}
+  button{font-family:inherit; color:inherit; background:none; border:none; padding:0; -webkit-appearance:none; appearance:none; cursor:pointer; text-align:inherit;}
+  input{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+  ::selection{background:var(--amber); color:#1B1D22;}
+  .mono{font-family:'Space Mono', monospace;}
+  svg.i{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; display:block;}
+  .sl{color:var(--text-faint); padding:0 1px; font-weight:400;}
+  mark{background:var(--amber-soft); color:var(--amber); border-radius:3px; padding:0 1px;}
 
-  header {
-    position: sticky; top: 0; z-index: 20;
-    background: linear-gradient(155deg, var(--navy) 0%, var(--navy-deep) 100%);
-    color: white;
-    padding: 16px 16px 0;
-    box-shadow: 0 4px 16px rgba(15,35,56,0.25);
-  }
-  .brandrow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 2px;
-  }
-  .seal {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: #000000;
-    color: #FFFFFF;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Fraunces', serif;
-    font-weight: 700;
-    font-size: 11.5px;
-    letter-spacing: 0.2px;
-    flex-shrink: 0;
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
-  }
-  header h1 {
-    margin: 0; font-size: 15.5px; font-weight: 600;
-    font-family: 'Fraunces', serif;
-    letter-spacing: 0.1px;
-    line-height: 1.15;
-    flex: 1;
-  }
-  .theme-toggle {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.25);
-    background: rgba(255,255,255,0.08);
-    color: white;
-    font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  header .sub {
-    margin: 1px 0 12px 40px; font-size: 11px; opacity: 0.72;
-    letter-spacing: 0.3px;
-  }
+  /* ============ HEADER ============ */
+  header{position:sticky; top:0; z-index:30; background:color-mix(in srgb, var(--panel) 88%, transparent);
+    -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px);
+    border-bottom:1px solid var(--line); padding:calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;}
+  .toprow{display:flex; align-items:center; gap:11px; max-width:640px; margin:0 auto;}
+  .mark{width:40px; height:40px; border-radius:12px; flex-shrink:0; background:#0B0D12; border:1px solid rgba(255,255,255,0.12);
+    display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+    font-family:'Manrope',sans-serif; font-weight:800; font-size:14.5px; color:#F1EFE9; letter-spacing:.3px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);}
+  .mark::after{content:''; position:absolute; left:8px; right:8px; bottom:6px; height:2px; border-radius:2px; background:#FFB020; opacity:.95;}
+  .mark::before{content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,.16) 50%, transparent 65%);
+    transform:translateX(-120%); animation:mark-sheen 6s ease-in-out 1.2s infinite;}
+  @keyframes mark-sheen{0%,70%{transform:translateX(-120%);} 85%,100%{transform:translateX(120%);}}
+  .titleblock{flex:1; min-width:0;}
+  .titleblock h1{margin:0; font-size:18px; font-weight:800; font-family:'Manrope',sans-serif; line-height:1.1; letter-spacing:-.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .titleblock .sub{font-size:11px; font-weight:600; color:var(--text-dim); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .titleblock .sub b{color:var(--amber); font-weight:700;}
+  .clock{text-align:right; flex-shrink:0; line-height:1;}
+  .clock .t{font-family:'Space Mono',monospace; font-weight:700; font-size:17px; letter-spacing:-.5px; font-variant-numeric:tabular-nums;}
+  .clock .t .colon{animation:blink 1s steps(1) infinite;}
+  .clock .t small{font-size:9.5px; color:var(--text-dim); margin-left:2px; letter-spacing:0;}
+  .clock .d{font-size:10px; color:var(--text-dim); font-weight:600; margin-top:4px;}
+  @keyframes blink{50%{opacity:.15;}}
+  .icon-btn{width:38px; height:38px; border-radius:11px; border:1px solid var(--line-strong); background:var(--panel-soft);
+    color:var(--text); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .15s ease; overflow:hidden;}
+  .icon-btn:active{transform:scale(.92);}
+  .icon-btn svg.i{width:18px; height:18px; animation:ico-spin .5s var(--spring) backwards;}
+  @keyframes ico-spin{from{transform:rotate(-120deg) scale(.4); opacity:0;}}
+  .icon-btn svg.ico-sun{display:none;} [data-theme="light"] .icon-btn svg.ico-sun{display:block;} [data-theme="light"] .icon-btn svg.ico-moon{display:none;}
 
-  #todayCard {
-    position: relative;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: stretch;
-    gap: 12px;
-    overflow: hidden;
-  }
-  #todayCard::before, #todayCard::after {
-    content: '';
-    position: absolute;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--navy-deep);
-    top: 50%; transform: translateY(-50%);
-  }
-  #todayCard::before { left: -8px; }
-  #todayCard::after { right: -8px; }
-  .today-badge {
-    flex-shrink: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding-right: 12px;
-    border-right: 1.5px dashed rgba(255,255,255,0.25);
-    min-width: 54px;
-  }
-  .today-badge .tb-day {
-    font-family: 'Fraunces', serif;
-    font-size: 26px; font-weight: 600; line-height: 1;
-    color: var(--gold-soft);
-  }
-  .today-badge .tb-mon {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
-    opacity: 0.75; margin-top: 2px;
-  }
-  .today-info { flex: 1; min-width: 0; padding-top: 1px; }
-  .today-info .label {
-    font-size: 9.5px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--gold-soft);
-    font-weight: 700;
-    margin-bottom: 3px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .share-btn {
-    background: none; border: none; color: var(--gold-soft);
-    opacity: 0.85; font-size: 12px; cursor: pointer; padding: 0 0 0 8px;
-  }
-  .today-info .date {
-    font-size: 13px; font-weight: 600; margin-bottom: 4px; opacity: 0.95;
-  }
-  .today-info .event {
-    font-size: 12.5px; opacity: 0.88; line-height: 1.4;
-  }
+  main{max-width:640px; margin:0 auto; padding:12px 16px 0;}
+  .view{display:none;}
+  .view.on{display:block;}
+  .view.from-r{animation:view-r .34s var(--ease) backwards;}
+  .view.from-l{animation:view-l .34s var(--ease) backwards;}
+  @keyframes view-r{from{opacity:0; transform:translateX(18px);}}
+  @keyframes view-l{from{opacity:0; transform:translateX(-18px);}}
+  .rise{animation:rise .55s var(--ease) backwards; animation-delay:calc(var(--d, 0) * 70ms);}
+  @keyframes rise{from{opacity:0; transform:translateY(12px);}}
 
-  .tabs {
-    display: flex;
-    background: rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 3px;
-    gap: 3px;
-    margin-bottom: 10px;
-  }
-  .tab-btn {
-    flex: 1;
-    background: transparent;
-    color: rgba(255,255,255,0.75);
-    border: none;
-    border-radius: 8px;
-    padding: 9px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.2s ease;
-  }
-  .tab-btn.active {
-    background: var(--gold);
-    color: var(--navy-deep);
-  }
+  /* ============ TODAY BOARD (signature element) ============ */
+  .ticker-panel{position:relative; background:linear-gradient(180deg,#0E1116 0%, #08090C 100%); border:1px solid rgba(255,255,255,0.08);
+    border-radius:var(--radius); overflow:hidden; margin-bottom:10px; box-shadow:0 10px 30px -12px rgba(0,0,0,.55); isolation:isolate;}
+  [data-theme="light"] .ticker-panel{background:linear-gradient(180deg,#1A1E25 0%, #12151A 100%); box-shadow:0 12px 28px -14px rgba(16,22,32,.45);}
+  .ticker-panel::before{content:''; position:absolute; top:0; left:0; right:0; height:1.5px; z-index:3; pointer-events:none;
+    background:linear-gradient(90deg, transparent, #FFB020, transparent) no-repeat; background-size:35% 100%;
+    animation:tk-scan 5.5s linear infinite; opacity:.9;}
+  @keyframes tk-scan{from{background-position:-60% 0;} to{background-position:160% 0;}}
+  /* slow drifting glow behind the board */
+  .ticker-panel::after{content:''; position:absolute; width:220px; height:220px; border-radius:50%; z-index:-1; pointer-events:none;
+    background:radial-gradient(circle, color-mix(in srgb, var(--glow, #FFB020) 22%, transparent), transparent 70%);
+    top:-110px; left:-60px; animation:drift 14s ease-in-out infinite alternate;}
+  @keyframes drift{0%{transform:translate(0,0);} 50%{transform:translate(170px,60px);} 100%{transform:translate(60px,120px);}}
 
-  #searchWrap {
-    padding: 10px 16px 6px;
-    background: var(--paper);
-    position: sticky;
-    top: var(--header-h, 165px);
-    z-index: 9;
-  }
-  #searchBox {
-    width: 100%;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    font-size: 13px;
-    background: var(--card);
-    font-family: 'Inter', sans-serif;
-    color: var(--ink);
-  }
-  #searchBox::placeholder { color: #B3ADA0; }
-  #searchBox:focus { outline: none; border-color: var(--gold); }
+  .ticker-head{display:flex; align-items:stretch; padding:13px 14px 12px;}
+  .tk-col{flex:1; min-width:0; display:flex; flex-direction:column; --sc:#3A3F4A;}
+  .tk-col + .tk-col{border-left:1px solid rgba(255,255,255,0.08); padding-left:12px; margin-left:12px;}
+  .tk-label{font-family:'Space Mono',monospace; font-weight:700; font-size:9px; letter-spacing:1.4px; text-transform:uppercase;
+    color:#8A90A0; display:flex; align-items:center; gap:5px; margin-bottom:8px; white-space:nowrap; min-height:20px;}
+  .tk-chip{margin-left:auto; font-size:9.5px; letter-spacing:.2px; text-transform:none; color:#D7DAE0;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); border-radius:6px; padding:2px 6px;
+    font-variant-numeric:tabular-nums;}
+  .tk-next.soon .tk-chip{background:#FFB020; color:#14161B; border-color:#FFB020; animation:tk-chip 1.3s ease-out infinite;}
+  @keyframes tk-chip{0%{box-shadow:0 0 0 0 rgba(255,176,32,.55);} 100%{box-shadow:0 0 0 7px rgba(255,176,32,0);}}
+  .tk-arrow{color:#FFB020; font-size:10px; display:inline-block; animation:tk-nudge 1.4s ease-in-out infinite;}
+  @keyframes tk-nudge{0%,100%{transform:translateX(0); opacity:.55;} 50%{transform:translateX(3px); opacity:1;}}
 
-  #legendWrap {
-    padding: 4px 16px 8px;
-    background: var(--paper);
-    position: sticky;
-    top: var(--legend-top, 220px);
-    z-index: 8;
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
-    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
-  }
-  .chip {
-    display: flex; align-items: center; gap: 5px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--card);
-    font-size: 10.5px;
-    font-weight: 600;
-    color: var(--muted);
-    white-space: nowrap;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .chip.active { border-color: var(--navy); color: var(--ink); background: var(--paper); box-shadow: inset 0 0 0 1px var(--navy); }
+  .live-dot{width:6px; height:6px; border-radius:50%; background:#5FD68A; flex-shrink:0; display:inline-block;}
+  .live-dot.amber{background:#FFB020;}
+  .live-dot.idle{background:#4A505C;}
+  .live-dot.pulsing{animation:pulse 1.6s ease-in-out infinite;}
+  .live-dot.amber.pulsing{animation-name:pulse-amber;}
+  @keyframes pulse{0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(95,214,138,.5);} 50%{opacity:.6; box-shadow:0 0 0 4px rgba(95,214,138,0);}}
+  @keyframes pulse-amber{0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(255,176,32,.5);} 50%{opacity:.6; box-shadow:0 0 0 4px rgba(255,176,32,0);}}
 
-  main { padding: 4px 12px 90px; }
+  .tk-body{position:relative; display:block; width:100%; text-align:left; font:inherit; color:inherit; padding:1px 0 1px 11px; margin:0;
+    min-width:0; animation:tk-in .5s var(--ease) backwards;}
+  .tk-body::before{content:''; position:absolute; left:0; top:1px; bottom:1px; width:3px; border-radius:2px; background:var(--sc);}
+  .tk-col.glow .tk-body::before{animation:tk-breathe 2.8s ease-in-out .5s infinite;}
+  .tk-next .tk-body{animation-delay:.08s;}
+  button.tk-body:active{opacity:.75;}
+  @keyframes tk-in{from{opacity:0; transform:translateY(8px);}}
+  @keyframes tk-breathe{0%,100%{box-shadow:0 0 4px 0 var(--sc); opacity:.85;} 50%{box-shadow:0 0 12px 2px var(--sc); opacity:1;}}
 
-  .row {
-    display: flex;
-    border-radius: 12px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    box-shadow: 0 2px 6px rgba(30,37,48,0.07);
-    margin-bottom: 8px;
-    overflow: hidden;
-    scroll-margin-top: var(--sticky-total, 230px);
-    transition: opacity 0.15s ease;
-  }
-  .row .datecol {
-    min-width: 58px;
-    text-align: center;
-    flex-shrink: 0;
-    padding: 11px 6px;
-    border-right: 1.5px dashed rgba(30,37,48,0.16);
-    display: flex; flex-direction: column; justify-content: center;
-  }
-  .row .datecol .d { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; line-height: 1; color: var(--date-num); }
-  .row .datecol .m { font-size: 9.5px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; margin-top: 3px; }
-  .row .datecol .day { font-size: 9.5px; color: var(--muted); margin-top: 1px; }
-  .row .particulars {
-    flex: 1;
-    font-size: 12.8px; line-height: 1.45; padding: 11px 12px;
-    white-space: pre-line;
-    display: flex; align-items: center; gap: 8px;
-    color: var(--ink);
-  }
-  .row.tinted .particulars { color: #1E2530; }
-  .row.tinted .datecol .d, .row.tinted .datecol .m, .row.tinted .datecol .day { color: #1E2530; }
-  .row .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .row.empty .particulars { color: #BDB6A5; font-style: italic; }
-  .row.tinted.empty .particulars { color: rgba(30,37,48,0.55); }
-  .row.today {
-    border: 2px solid var(--gold);
-    box-shadow: 0 2px 10px rgba(217,164,65,0.35);
-  }
-  .row.today .datecol { border-right-color: rgba(27,58,92,0.3); }
-  .row.today .particulars { font-weight: 600; }
-  .row.dim { opacity: 0.28; }
+  .tk-main{font-family:'Space Mono',monospace; font-weight:700; font-size:22px; color:#F5D9A0; line-height:1.05; letter-spacing:-.5px; white-space:nowrap;}
+  .tk-main small{font-size:12px; letter-spacing:.5px; color:#C9B184; margin-left:4px;}
+  .tk-name{font-family:'Manrope',sans-serif; font-size:12px; font-weight:800; color:#E4E6EB; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .tk-name i{font-style:normal; color:#7A8190; font-weight:700;}
+  .tk-text{font-size:11px; color:#B9BEC8; margin-top:4px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .tk-text.dim{color:#6F7684; font-style:italic;}
+  .tk-text .sl{color:#59606D;}
+  .tk-tags{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;}
 
-  .month-divider {
-    font-family: 'Fraunces', serif;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--heading-accent);
-    padding: 16px 4px 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .month-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--line);
-  }
+  .tk-prog{margin-top:auto; padding-top:10px;}
+  .bar{height:4px; border-radius:3px; background:rgba(255,255,255,0.07); overflow:hidden;}
+  .bar i{display:block; height:100%; width:0; border-radius:3px; background:var(--sc); position:relative; overflow:hidden;
+    box-shadow:0 0 8px var(--sc); transition:width 1s linear;}
+  .bar i::after{content:''; position:absolute; inset:0; transform:translateX(-100%);
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation:shimmer 2.4s ease-in-out infinite;}
+  @keyframes shimmer{to{transform:translateX(100%);}}
+  .tk-span{display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:8.5px; color:#5F6570; margin-top:4px;}
 
-  #monthView { display: none; }
-  .month-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 2px 8px;
-  }
-  .month-nav button {
-    background: var(--navy);
-    color: white;
-    border: none;
-    border-radius: 9px;
-    width: 34px; height: 34px;
-    font-size: 15px;
-    font-weight: 700;
-  }
-  .month-nav .label {
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--heading-accent);
-  }
-  .swipe-hint {
-    text-align: center;
-    font-size: 10px;
-    color: var(--muted);
-    padding-bottom: 8px;
-    letter-spacing: 0.3px;
-  }
-  .weekday-row {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-bottom: 5px;
-  }
-  .weekday-row div {
-    text-align: center;
-    font-size: 9.5px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-  }
-  #monthGrid { touch-action: pan-y; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-  }
-  .cell {
-    aspect-ratio: 1 / 1;
-    border-radius: 9px;
-    border: 1px solid var(--line);
-    background: var(--card);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-    transition: transform 0.1s ease, opacity 0.15s ease;
-  }
-  .cell:active { transform: scale(0.94); }
-  .cell.blank { visibility: hidden; }
-  .cell .num { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 600; color: var(--date-num); }
-  .cell.tinted .num { color: #1E2530; }
-  .cell.has-event .num { font-weight: 700; }
-  .cell .bar { position: absolute; bottom: 5px; width: 16px; height: 3px; border-radius: 2px; background: var(--navy); opacity: 0.7; }
-  .cell.today { border: 2px solid var(--gold); box-shadow: 0 2px 8px rgba(217,164,65,0.4); }
-  .cell.today .num { color: var(--navy); }
-  .cell.selected { outline: 2px solid var(--navy); outline-offset: 1px; }
-  .cell.dim { opacity: 0.25; }
+  .ticker-tape{border-top:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.015); overflow:hidden; white-space:nowrap; padding:7px 0;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);}
+  .ticker-track{display:inline-block; animation:scroll-left 40s linear infinite; will-change:transform;}
+  .ticker-tape:active .ticker-track{animation-play-state:paused;}
+  @keyframes scroll-left{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+  .tt-item{font-family:'Space Mono',monospace; font-size:10.5px; color:#8A90A0; padding:0 4px; letter-spacing:.2px; display:inline-flex; align-items:center; gap:7px;}
+  .tt-item b{color:#F5D9A0; font-weight:700;}
+  .tt-item em{font-style:normal; color:#C3C7CF; font-family:'Inter',sans-serif; font-weight:600; font-size:11px;}
+  .tt-item .st{font-size:8.5px; font-weight:700; letter-spacing:.8px; padding:1px 5px; border-radius:4px; color:var(--cc); border:1px solid color-mix(in srgb, var(--cc) 55%, transparent);}
+  .tt-sep{color:#3A404B; font-size:8px; padding:0 14px; vertical-align:middle;}
 
-  #dayDetail {
-    margin-top: 16px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 12.8px;
-    line-height: 1.45;
-    white-space: pre-line;
-    min-height: 50px;
-    box-shadow: 0 1px 3px rgba(30,37,48,0.05);
-  }
-  #dayDetail .dd-date { font-family: 'Fraunces', serif; font-weight: 600; color: var(--heading-accent); margin-bottom: 5px; font-size: 14px; }
-  #dayDetail .dd-empty { color: #BDB6A5; font-style: italic; }
+  .ctag{display:inline-flex; align-items:center; gap:4px; font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--cc); background:color-mix(in srgb, var(--cc) 14%, transparent); border:1px solid color-mix(in srgb, var(--cc) 40%, transparent); border-radius:6px; padding:2px 6px; white-space:nowrap;}
+  .ctag::before{content:''; width:5px; height:5px; border-radius:50%; background:var(--cc);}
 
-  #fabWrap {
-    position: fixed;
-    right: 14px;
-    bottom: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    z-index: 30;
-  }
-  .fab {
-    width: 42px; height: 42px;
-    border-radius: 50%;
-    border: none;
-    background: var(--navy);
-    color: white;
-    font-size: 16px;
-    box-shadow: 0 3px 10px rgba(15,35,56,0.3);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .fab.gold { background: var(--gold); color: var(--navy-deep); font-size: 17px; box-shadow: 0 3px 10px rgba(217,164,65,0.45); }
-  .fab:active { transform: scale(0.92); }
+  /* ============ COUNTDOWN TILES ============ */
+  .cd-row{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;}
+  .cd-tile{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:11px 12px 12px; min-width:0; overflow:hidden;
+    display:flex; flex-direction:column; transition:transform .15s ease; isolation:isolate;}
+  .cd-tile:active{transform:scale(.97);}
+  .cd-tile::before{content:''; position:absolute; inset:0; z-index:-1; background:radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--cc) 16%, transparent), transparent 60%);}
+  .cd-k{font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; letter-spacing:1.3px; text-transform:uppercase; color:var(--text-dim); display:flex; align-items:center; gap:6px;}
+  .cd-dot{width:6px; height:6px; border-radius:50%; background:var(--cc); box-shadow:0 0 0 0 var(--cc); animation:cd-ping 2s ease-out infinite;}
+  @keyframes cd-ping{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--cc) 60%, transparent);} 100%{box-shadow:0 0 0 7px transparent;}}
+  .cd-big{display:flex; align-items:baseline; gap:5px; margin-top:8px; line-height:1;}
+  .cd-big b{font-family:'Space Mono',monospace; font-size:32px; font-weight:700; letter-spacing:-1.5px; color:var(--cc); font-variant-numeric:tabular-nums;}
+  .cd-big small{font-size:11px; font-weight:700; color:var(--text-dim);}
+  .cd-hms{font-family:'Space Mono',monospace; font-size:11px; font-weight:700; color:var(--text-dim); margin-top:5px; display:flex; height:14px; overflow:hidden; font-variant-numeric:tabular-nums;}
+  .cd-hms span{display:inline-block;}
+  .cd-hms span.roll{animation:roll .42s var(--ease);}
+  @keyframes roll{from{transform:translateY(-100%); opacity:0;}}
+  .cd-l{font-family:'Manrope',sans-serif; font-weight:800; font-size:13px; line-height:1.25; margin-top:9px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .cd-date{font-size:10px; color:var(--text-dim); font-weight:600; margin-top:3px;}
+  .cd-tile .bar{margin-top:auto; background:var(--panel-raised);}
+  .cd-tile .bar-wrap{margin-top:10px;}
+  .cd-tile .bar i{background:var(--cc); box-shadow:0 0 8px var(--cc); transition:width 1.2s var(--ease);}
+  .cd-tile.live{border-color:color-mix(in srgb, var(--cc) 60%, transparent); box-shadow:0 0 0 1px color-mix(in srgb, var(--cc) 40%, transparent), 0 10px 24px -14px var(--cc);}
+  .cd-tile.none .cd-big b{font-size:20px; color:var(--text-faint);}
 
-  footer { text-align: center; font-size: 10px; color: var(--muted); padding: 14px 24px 30px; letter-spacing: 0.2px; }
+  /* ============ CARDS ============ */
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 14px 13px; margin-bottom:10px; position:relative;}
+  .card-h{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:11px;}
+  .card-h .t{font-family:'Manrope',sans-serif; font-weight:800; font-size:13.5px; display:flex; align-items:center; gap:7px;}
+  .card-h .m{font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); font-weight:700;}
+
+  /* week strip */
+  .wk{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+  .wk-d{position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 0 9px; border-radius:11px;
+    background:var(--panel-soft); border:1px solid var(--line); overflow:hidden; isolation:isolate; transition:transform .15s;
+    animation:rise .45s var(--ease) backwards; animation-delay:calc(var(--i) * 45ms + 150ms);}
+  .wk-d:active{transform:scale(.93);}
+  .wk-d .dn{font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; letter-spacing:.8px; color:var(--text-faint); text-transform:uppercase;}
+  .wk-d .dd{font-family:'Space Mono',monospace; font-size:15px; font-weight:700; line-height:1;}
+  .wk-d .dots{display:flex; gap:3px; height:5px;}
+  .wk-d .dots i{width:5px; height:5px; border-radius:50%; background:var(--cc);}
+  .wk-d.we{background:color-mix(in srgb, var(--c-weekend) 12%, var(--panel-soft));}
+  .wk-d.we .dn{color:color-mix(in srgb, var(--c-weekend) 75%, var(--text-dim));}
+  .wk-d.hol{background:color-mix(in srgb, var(--c-holiday) 18%, var(--panel-soft)); border-color:color-mix(in srgb, var(--c-holiday) 35%, transparent);}
+  .wk-d.hol .dd{color:var(--c-holiday);}
+  .wk-d.past{opacity:.45;}
+  .wk-d.today{border-color:var(--amber); box-shadow:0 0 0 1px var(--amber), 0 8px 18px -10px var(--amber);}
+  .wk-d.today .dn, .wk-d.today .dd{color:var(--amber);}
+  .wk-d.today::before{content:''; position:absolute; left:0; right:0; bottom:0; height:var(--dp, 0%); z-index:-1; transition:height 1s linear;
+    background:linear-gradient(0deg, color-mix(in srgb, var(--amber) 26%, transparent), color-mix(in srgb, var(--amber) 6%, transparent)); border-top:1px solid color-mix(in srgb, var(--amber) 55%, transparent);}
+  .wk-foot{display:flex; justify-content:space-between; font-size:10px; color:var(--text-faint); margin-top:9px; font-weight:600;}
+  .wk-foot b{color:var(--text-dim); font-family:'Space Mono',monospace;}
+
+  /* year progress */
+  .yr-top{display:flex; justify-content:space-between; align-items:flex-end; gap:10px;}
+  .yr-top .t1{font-family:'Manrope',sans-serif; font-weight:800; font-size:16px; letter-spacing:-.3px;}
+  .yr-top .t2{font-size:11px; color:var(--text-dim); margin-top:3px; font-weight:600;}
+  .yr-top .pct{font-family:'Space Mono',monospace; font-size:28px; color:var(--amber); font-weight:700; line-height:1; letter-spacing:-1px;}
+  .yr-top .pct small{font-size:15px;}
+  .yr-bar{position:relative; height:8px; background:var(--panel-raised); border-radius:5px; margin:20px 0 6px;}
+  .yr-fill{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:5px; overflow:hidden;
+    background:linear-gradient(90deg, color-mix(in srgb, var(--amber) 35%, transparent), var(--amber)); transition:width 1.4s var(--ease);}
+  .yr-fill::after{content:''; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 2.8s ease-in-out 1.4s infinite;}
+  .yr-knob{position:absolute; top:50%; left:0; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:var(--amber); border:3px solid var(--panel);
+    transition:left 1.4s var(--ease); animation:pulse-amber 1.8s ease-in-out infinite; z-index:2;}
+  .yr-hol{position:absolute; top:-9px; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--c-holiday); opacity:.9;}
+  .yr-hol.done{opacity:.3;}
+  .yr-tick{position:absolute; top:0; bottom:0; width:1px; background:var(--panel);}
+  .yr-months{position:relative; height:12px; font-family:'Space Mono',monospace; font-size:8.5px; color:var(--text-faint);}
+  .yr-months span{position:absolute; transform:translateX(-50%);}
+  .yr-months span.cur{color:var(--amber); font-weight:700;}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:12px;}
+  .stat{background:var(--panel-soft); border:1px solid var(--line); border-radius:12px; padding:9px 10px;}
+  .stat b{display:block; font-family:'Space Mono',monospace; font-size:19px; font-weight:700; letter-spacing:-.5px; line-height:1; color:var(--cc, var(--text));}
+  .stat span{display:block; font-size:9.5px; color:var(--text-dim); font-weight:600; margin-top:5px; line-height:1.25;}
+
+  /* ============ TIMELINE LIST (coming up + key dates) ============ */
+  .section-title{font-family:'Manrope',sans-serif; font-weight:800; font-size:13.5px; margin:16px 0 9px; display:flex; align-items:center; gap:7px;}
+  .section-title .n{font-family:'Space Mono',monospace; color:var(--text-faint); font-size:10.5px;}
+  .tl{position:relative; margin-bottom:14px;}
+  .tl::before{content:''; position:absolute; left:7px; top:16px; bottom:16px; width:2px; background:var(--line-strong); border-radius:2px;}
+  .tl-item{position:relative; display:flex; align-items:center; gap:11px; padding:8px 10px 8px 26px; border-radius:12px; width:100%; text-align:left; border:1px solid transparent;
+    transition:transform .15s, background .2s; animation:rise .45s var(--ease) backwards; animation-delay:calc(var(--i, 0) * 40ms);}
+  .tl-item:active{transform:scale(.985); background:var(--panel);}
+  .tl-node{position:absolute; left:2px; top:50%; width:12px; height:12px; margin-top:-6px; border-radius:50%; background:var(--ink); border:2px solid var(--cc, var(--text-faint));}
+  .tl-item.done{opacity:.5;}
+  .tl-item.done .tl-node{background:var(--text-faint); border-color:var(--text-faint);}
+  .tl-item.next{background:var(--panel); border-color:color-mix(in srgb, var(--cc) 50%, transparent); margin:4px 0;
+    box-shadow:0 10px 24px -14px color-mix(in srgb, var(--cc) 80%, transparent);}
+  .tl-item.next .tl-node, .tl-item.live .tl-node{background:var(--cc); animation:node-ping 1.8s ease-out infinite;}
+  .tl-item.live{background:color-mix(in srgb, var(--cc) 10%, var(--panel)); border-color:var(--cc); margin:4px 0;}
+  @keyframes node-ping{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--cc) 60%, transparent);} 100%{box-shadow:0 0 0 8px transparent;}}
+  .tl-date{flex-shrink:0; width:46px; text-align:center; line-height:1;}
+  .tl-date b{display:block; font-family:'Space Mono',monospace; font-size:18px; font-weight:700; letter-spacing:-.5px;}
+  .tl-date b small{font-size:11px; letter-spacing:0;}
+  .tl-date span{display:block; font-size:9px; color:var(--text-dim); font-weight:700; margin-top:4px; text-transform:uppercase; letter-spacing:.4px;}
+  .tl-body{flex:1; min-width:0;}
+  .tl-label{font-family:'Manrope',sans-serif; font-weight:700; font-size:12.5px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .tl-when{font-family:'Space Mono',monospace; font-size:9.5px; color:var(--text-dim); margin-top:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .tl-item.next .tl-when, .tl-item.soon .tl-when{color:var(--amber); font-weight:700;}
+  .tl-item.live .tl-when{color:var(--live); font-weight:700;}
+  .tl-today{position:relative; display:flex; align-items:center; gap:8px; padding:6px 0 6px 26px; font-family:'Space Mono',monospace; font-size:9.5px; font-weight:700; color:var(--amber); letter-spacing:.4px;}
+  .tl-today::before{content:''; position:absolute; left:0; top:50%; width:16px; height:2px; background:var(--amber); margin-top:-1px; box-shadow:0 0 6px var(--amber);}
+  .tl-today::after{content:''; flex:1; height:1px; background:linear-gradient(90deg, color-mix(in srgb, var(--amber) 50%, transparent), transparent);}
+  .tl-month{font-family:'Space Mono',monospace; font-size:9.5px; font-weight:700; letter-spacing:1.4px; color:var(--text-faint); text-transform:uppercase; padding:10px 0 4px 26px;}
+  .empty-note{text-align:center; color:var(--text-faint); font-size:12px; padding:26px 10px; line-height:1.6;}
+
+  /* ============ CONTROLS ============ */
+  .seg{position:relative; display:grid; grid-auto-flow:column; grid-auto-columns:1fr; background:var(--panel); border:1px solid var(--line-strong);
+    border-radius:11px; padding:3px; height:36px;}
+  .seg-thumb{position:absolute; top:3px; bottom:3px; left:3px; width:calc((100% - 6px) / var(--n)); background:var(--amber); border-radius:8px;
+    transform:translateX(calc(var(--k) * 100%)); transition:transform .38s var(--spring); box-shadow:0 2px 10px -2px color-mix(in srgb, var(--amber) 60%, transparent);}
+  .seg button{position:relative; z-index:1; font-size:11.5px; font-weight:700; color:var(--text-dim); transition:color .25s; text-align:center;}
+  .seg button.active{color:var(--amber-ink);}
+  .legend{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;}
+  .chip{display:flex; align-items:center; gap:5px; padding:0 9px; height:28px; border-radius:999px; border:1px solid var(--line-strong);
+    background:var(--panel); font-size:10.5px; font-weight:700; color:var(--text-dim); transition:background .2s, border-color .2s, color .2s, transform .12s;}
+  .chip:active{transform:scale(.94);}
+  .chip .sw{width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--cc);}
+  .chip em{font-style:normal; font-family:'Space Mono',monospace; font-size:9px; color:var(--text-faint);}
+  .chip.active{color:var(--text); border-color:var(--cc, var(--amber)); background:color-mix(in srgb, var(--cc, var(--amber)) 20%, var(--panel));}
+  .chip.active em{color:var(--text-dim);}
+  .chip.all.active{background:var(--amber); color:var(--amber-ink); border-color:var(--amber);}
+  .pill-btn{display:inline-flex; align-items:center; gap:6px; background:var(--amber-soft); border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+    color:var(--amber); border-radius:10px; padding:0 12px; font-size:11.5px; font-weight:700; height:34px; transition:transform .15s ease, opacity .25s;}
+  .pill-btn:active{transform:scale(.95);}
+  .pill-btn .live-dot{background:var(--amber); animation:pulse-amber 1.6s ease-in-out infinite;}
+
+  /* ============ MONTH VIEW ============ */
+  .mh{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .nav-arrow{width:38px; height:38px; border-radius:11px; border:1px solid var(--line-strong); background:var(--panel); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .15s, opacity .2s;}
+  .nav-arrow:active{transform:scale(.9);}
+  .nav-arrow:disabled{opacity:.3; pointer-events:none;}
+  .nav-arrow svg.i{width:17px; height:17px;}
+  .mh-title{flex:1; min-width:0; overflow:hidden;}
+  .mh-title .mt{font-family:'Manrope',sans-serif; font-weight:800; font-size:21px; letter-spacing:-.6px; line-height:1.05; white-space:nowrap;}
+  .mh-title .mt span{color:var(--text-faint); font-weight:700;}
+  .mh-title .ms{font-size:10.5px; color:var(--text-dim); font-weight:600; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .mh-title .ms b{font-family:'Space Mono',monospace; color:var(--text);}
+  .mh-title.swap{animation:title-swap .35s var(--ease) backwards;}
+  @keyframes title-swap{from{opacity:0; transform:translateY(-8px);}}
+  .mh-today{display:flex; justify-content:flex-end; margin:-2px 0 10px;}
+
+  .cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:10px 8px 9px; margin-bottom:10px; position:relative; overflow:hidden;}
+  .dow{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:7px;}
+  .dow span{text-align:center; font-family:'Space Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; color:var(--text-faint);}
+  .dow span.we{color:color-mix(in srgb, var(--c-weekend) 80%, var(--text-dim));}
+  .cal-vp{touch-action:pan-y; overflow:hidden;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; will-change:transform;}
+  .cal-grid.in-next{animation:slide-next .42s var(--ease) backwards;}
+  .cal-grid.in-prev{animation:slide-prev .42s var(--ease) backwards;}
+  @keyframes slide-next{from{transform:translateX(35%); opacity:0;}}
+  @keyframes slide-prev{from{transform:translateX(-35%); opacity:0;}}
+  .cell{--bg:var(--panel-soft); position:relative; aspect-ratio:1/1.08; border-radius:11px; background:var(--bg); border:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; overflow:hidden; isolation:isolate;
+    transition:transform .15s, border-color .2s, box-shadow .2s, opacity .3s; animation:cell-in .42s var(--ease) backwards; animation-delay:calc(var(--i) * 9ms);}
+  @keyframes cell-in{from{opacity:0; transform:translateY(7px) scale(.92);}}
+  .cell:active{transform:scale(.9);}
+  .cell .cn{font-family:'Space Mono',monospace; font-weight:700; font-size:14px; line-height:1; position:relative; z-index:2;}
+  .cell .cd{display:flex; gap:3px; height:4px; position:relative; z-index:2;}
+  .cell .cd i{width:10px; height:3px; border-radius:2px; background:var(--cc); transition:opacity .25s;}
+  .cell .cd i:only-child{width:14px;}
+  .cell.we{--bg:color-mix(in srgb, var(--c-weekend) 12%, var(--panel-soft));}
+  .cell.we2{--bg:color-mix(in srgb, var(--c-weekend) 22%, var(--panel-soft));}
+  .cell.we .cn, .cell.we2 .cn{color:color-mix(in srgb, var(--c-weekend) 50%, var(--text));}
+  .cell.hol{--bg:color-mix(in srgb, var(--c-holiday) 22%, var(--panel-soft)); border-color:color-mix(in srgb, var(--c-holiday) 40%, transparent);}
+  .cell.hol .cn{color:color-mix(in srgb, var(--c-holiday) 70%, var(--text));}
+  .cell.past{opacity:.5;}
+  .cell.other{opacity:.18; pointer-events:none; background:transparent; border-style:dashed;}
+  .cell.nodata{opacity:.35; pointer-events:none; background:repeating-linear-gradient(135deg, var(--panel-soft) 0 4px, transparent 4px 8px);}
+  .cell.dim .cd i{opacity:.15;}
+  .cell.dim{opacity:.35;}
+  .cell.sel{border-color:var(--text); box-shadow:inset 0 0 0 1px var(--text);}
+  .cell.today{border-color:transparent; box-shadow:0 0 18px -4px color-mix(in srgb, var(--amber) 75%, transparent); opacity:1;}
+  .cell.today::before{content:''; position:absolute; inset:-60%; z-index:0;
+    background:conic-gradient(from 0deg, transparent 0 50%, color-mix(in srgb, var(--amber) 40%, transparent) 65%, var(--amber) 80%, #FFE6A8 84%, var(--amber) 88%, transparent 100%);
+    animation:spin 2.6s linear infinite;}
+  .cell.today::after{content:''; position:absolute; inset:2px; border-radius:9px; background:var(--bg); z-index:1;}
+  .cell.today .cn{color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .cal-hint{display:flex; justify-content:center; align-items:center; gap:8px; font-size:9.5px; color:var(--text-faint); margin-top:9px; font-weight:600;}
+  .cal-hint .sw-hand{display:inline-block; animation:hint-swipe 2.4s ease-in-out infinite;}
+  @keyframes hint-swipe{0%,100%{transform:translateX(-4px);} 50%{transform:translateX(4px);}}
+  .cal-dots{display:flex; justify-content:center; gap:4px; margin-top:8px;}
+  .cal-dots i{width:5px; height:5px; border-radius:3px; background:var(--line-strong); transition:width .35s var(--spring), background .3s;}
+  .cal-dots i.on{width:16px; background:var(--amber);}
+
+  .detail{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:13px 14px; margin-bottom:10px; overflow:hidden; --sc:var(--line-strong);}
+  .detail::before{content:''; position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:0 3px 3px 0; background:var(--sc); box-shadow:0 0 10px var(--sc);}
+  .detail.swap .dt-in{animation:rise .35s var(--ease) backwards;}
+  .dt-head{display:flex; align-items:center; gap:11px;}
+  .dt-date{flex-shrink:0; width:46px; height:46px; border-radius:12px; background:var(--panel-raised); display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1;}
+  .dt-date b{font-family:'Space Mono',monospace; font-size:19px; font-weight:700; letter-spacing:-.5px;}
+  .dt-date span{font-size:8.5px; font-weight:800; color:var(--amber); letter-spacing:.6px; margin-top:3px;}
+  .dt-t{flex:1; min-width:0;}
+  .dt-t .a{font-family:'Manrope',sans-serif; font-weight:800; font-size:15px; letter-spacing:-.2px;}
+  .dt-t .b{font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); margin-top:3px;}
+  .dt-t .b.hot{color:var(--amber);}
+  .dt-share{width:34px; height:34px; border-radius:10px; background:var(--panel-raised); display:flex; align-items:center; justify-content:center; color:var(--text-dim); flex-shrink:0; transition:transform .15s;}
+  .dt-share:active{transform:scale(.9);}
+  .dt-share svg.i{width:16px; height:16px;}
+  .dt-text{font-size:13px; line-height:1.55; margin-top:11px;}
+  .dt-text.dim{color:var(--text-faint); font-style:italic;}
+  .dt-tags{display:flex; flex-wrap:wrap; gap:5px; margin-top:10px;}
+
+  .mlist{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-bottom:12px;}
+  .ml-row{position:relative; display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px 10px 14px; border-bottom:1px solid var(--line); transition:background .2s;}
+  .ml-row:last-child{border-bottom:none;}
+  .ml-row::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--cc);}
+  .ml-row.sel{background:color-mix(in srgb, var(--cc) 10%, var(--panel));}
+  .ml-row.past{opacity:.5;}
+  .ml-d{flex-shrink:0; width:38px; text-align:center; line-height:1;}
+  .ml-d b{display:block; font-family:'Space Mono',monospace; font-size:15px; font-weight:700;}
+  .ml-d span{display:block; font-size:8.5px; color:var(--text-dim); font-weight:700; margin-top:3px; text-transform:uppercase;}
+  .ml-t{flex:1; min-width:0; font-size:12px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+
+  /* ============ AGENDA ============ */
+  .searchwrap{position:relative; margin-bottom:10px;}
+  .searchwrap > svg.i{position:absolute; left:13px; top:50%; margin-top:-9px; width:18px; height:18px; color:var(--text-faint); pointer-events:none; transition:color .2s;}
+  .searchwrap:focus-within > svg.i{color:var(--amber);}
+  .searchbox{width:100%; padding:0 40px; height:46px; border-radius:13px; border:1px solid var(--line-strong); background:var(--panel);
+    color:var(--text); font-size:13.5px; transition:border-color .2s, box-shadow .2s;}
+  .searchbox::placeholder{color:var(--text-faint);}
+  .searchbox::-webkit-search-cancel-button, .searchbox::-webkit-search-decoration{-webkit-appearance:none; appearance:none; display:none;}
+  .searchbox:focus{outline:none; border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-soft);}
+  .search-clear{position:absolute; right:8px; top:50%; margin-top:-15px; width:30px; height:30px; border-radius:50%; display:none; align-items:center; justify-content:center; color:var(--text-dim);}
+  .search-clear.show{display:flex;}
+  .search-clear svg.i{width:15px; height:15px;}
+  .ag-ctrl{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .ag-ctrl .seg{width:168px; flex-shrink:0;}
+  .ag-count{flex:1; text-align:right; font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); font-weight:700;}
+  .ag-month{position:sticky; top:var(--hdr); z-index:5; display:flex; align-items:baseline; justify-content:space-between; padding:12px 2px 8px; margin:0 -2px;
+    background:linear-gradient(180deg, var(--ink) 75%, transparent);}
+  .ag-month .t{font-family:'Manrope',sans-serif; font-weight:800; font-size:14px; letter-spacing:-.2px;}
+  .ag-month .t span{color:var(--text-faint); font-weight:700;}
+  .ag-month .n{font-family:'Space Mono',monospace; font-size:9.5px; color:var(--text-faint); font-weight:700;}
+  .ag-list{display:flex; flex-direction:column; gap:5px;}
+  .ag-row{position:relative; display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:9px 10px 9px 0; min-height:52px; width:100%; text-align:left; overflow:hidden; transition:transform .12s, opacity .4s, translate .5s var(--ease);}
+  .ag-row:active{transform:scale(.985);}
+  .ag-row.rv{opacity:0; translate:0 10px;}
+  .ag-row.rv.in{opacity:1; translate:0 0;}
+  .ag-row.rv.in.past{opacity:.5;}
+  .ag-row.past{opacity:.5;}
+  .ag-row.we{background:color-mix(in srgb, var(--c-weekend) 8%, var(--panel));}
+  .ag-row.we2{background:color-mix(in srgb, var(--c-weekend) 14%, var(--panel));}
+  .ag-row.hol{background:color-mix(in srgb, var(--c-holiday) 12%, var(--panel)); border-color:color-mix(in srgb, var(--c-holiday) 30%, transparent);}
+  .ag-row.empty{min-height:38px; padding-top:5px; padding-bottom:5px;}
+  .ag-row.today{border-color:var(--amber); box-shadow:0 0 0 1px var(--amber), 0 10px 24px -12px color-mix(in srgb, var(--amber) 70%, transparent); opacity:1 !important;}
+  .ag-row.today::after{content:''; position:absolute; top:0; bottom:0; width:40%; left:0; pointer-events:none;
+    background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--amber) 14%, transparent), transparent); animation:sweep 3.2s ease-in-out infinite;}
+  @keyframes sweep{from{transform:translateX(-100%);} to{transform:translateX(260%);}}
+  .ag-d{flex-shrink:0; width:50px; text-align:center; line-height:1; border-right:1px dashed var(--line-strong); padding:2px 0;}
+  .ag-d b{display:block; font-family:'Space Mono',monospace; font-size:17px; font-weight:700; letter-spacing:-.5px;}
+  .ag-d span{display:block; font-size:9px; font-weight:700; color:var(--text-dim); margin-top:3px; text-transform:uppercase; letter-spacing:.5px;}
+  .ag-row.empty .ag-d b{font-size:13px; color:var(--text-dim);}
+  .ag-row.empty .ag-d span{margin-top:2px;}
+  .ag-row.we .ag-d span, .ag-row.we2 .ag-d span{color:color-mix(in srgb, var(--c-weekend) 75%, var(--text-dim));}
+  .ag-row.hol .ag-d b{color:var(--c-holiday);}
+  .ag-row.today .ag-d b, .ag-row.today .ag-d span{color:var(--amber);}
+  .ag-b{flex:1; min-width:0;}
+  .ag-t{font-size:12.5px; line-height:1.45;}
+  .ag-t .cdot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--cc); margin-right:7px; vertical-align:1px; box-shadow:0 0 6px var(--cc);}
+  .ag-row.empty .ag-t{font-size:11px; color:var(--text-faint); font-style:italic;}
+  .tag{flex-shrink:0; font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; letter-spacing:.5px; border-radius:6px; padding:3px 6px;}
+  .tag.now{color:#0B0D12; background:var(--amber);}
+  .ag-today-line{position:relative; display:flex; align-items:center; gap:8px; padding:4px 2px; font-family:'Space Mono',monospace; font-size:9.5px; font-weight:700; color:var(--amber); letter-spacing:.4px;}
+  .ag-today-line::after{content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--amber), transparent);}
+  .ag-foot{font-size:10px; color:var(--text-faint); text-align:center; margin:18px 0 8px; line-height:1.6;}
+  .ag-foot i{display:inline-block; width:8px; height:8px; border-radius:2px; vertical-align:-1px; margin:0 3px 0 8px;}
+
+  .jump-fab{position:fixed; right:16px; bottom:calc(84px + var(--safe-b)); z-index:35; height:44px; padding:0 15px 0 12px; border-radius:22px;
+    background:var(--amber); color:var(--amber-ink); display:flex; align-items:center; gap:7px; font-size:12px; font-weight:800;
+    box-shadow:0 10px 24px -8px color-mix(in srgb, var(--amber) 70%, transparent), 0 2px 6px rgba(0,0,0,.25);
+    transform:translateY(20px) scale(.8); opacity:0; pointer-events:none; transition:transform .35s var(--spring), opacity .25s;}
+  .jump-fab.show{transform:none; opacity:1; pointer-events:auto;}
+  .jump-fab:active{transform:scale(.93);}
+  .jump-fab svg.i{width:17px; height:17px; transition:transform .35s var(--spring);}
+  .jump-fab.up svg.i{transform:rotate(180deg);}
+  @media (min-width:700px){ .jump-fab{right:calc(50% - 304px);} }
+
+  /* ============ BOTTOM SHEET ============ */
+  .sheet-overlay{position:fixed; inset:0; background:rgba(4,6,10,0.6); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+    z-index:50; opacity:0; pointer-events:none; transition:opacity .25s ease;}
+  .sheet-overlay.open{opacity:1; pointer-events:auto;}
+  .sheet{position:fixed; left:0; right:0; bottom:0; z-index:51; background:var(--panel); border-radius:22px 22px 0 0;
+    padding:10px 18px calc(18px + var(--safe-b)); max-width:640px; margin:0 auto; transform:translateY(100%); transition:transform .42s var(--spring);
+    border-top:1px solid var(--line-strong); max-height:86vh; overflow-y:auto; overflow-x:hidden; --sc:var(--amber); touch-action:pan-y;}
+  .sheet.dragging{transition:none;}
+  .sheet::before{content:''; position:absolute; top:0; left:22px; right:22px; height:3px; border-radius:0 0 3px 3px; background:var(--sc); box-shadow:0 0 12px var(--sc); transition:background .3s;}
+  .sheet-overlay.open .sheet{transform:translateY(0);}
+  .sheet-handle{width:38px; height:4px; border-radius:3px; background:var(--line-strong); margin:4px auto 14px;}
+  .sh-in.from-r{animation:view-r .3s var(--ease) backwards;}
+  .sh-in.from-l{animation:view-l .3s var(--ease) backwards;}
+  .sh-head{display:flex; align-items:center; gap:12px;}
+  .sh-date{flex-shrink:0; width:54px; height:54px; border-radius:14px; background:var(--panel-raised); display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--sc) 45%, transparent);}
+  .sh-date b{font-family:'Space Mono',monospace; font-size:23px; font-weight:700; letter-spacing:-1px;}
+  .sh-date span{font-size:9px; font-weight:800; color:var(--sc); letter-spacing:.8px; margin-top:3px;}
+  .sh-title{flex:1; min-width:0;}
+  .sh-title .a{font-family:'Manrope',sans-serif; font-weight:800; font-size:18px; letter-spacing:-.3px;}
+  .sh-title .b{font-family:'Space Mono',monospace; font-size:10.5px; color:var(--text-dim); margin-top:3px;}
+  .sh-title .b.hot{color:var(--amber);}
+  .sh-close{width:32px; height:32px; border-radius:50%; background:var(--panel-raised); display:flex; align-items:center; justify-content:center; color:var(--text-dim); flex-shrink:0;}
+  .sh-close svg.i{width:15px; height:15px;}
+  .sh-tags{display:flex; flex-wrap:wrap; gap:5px; margin-top:14px;}
+  .sh-text{font-size:14.5px; line-height:1.6; margin-top:12px; background:var(--panel-soft); border:1px solid var(--line); border-radius:13px; padding:12px 14px;}
+  .sh-text.dim{color:var(--text-faint); font-style:italic; font-size:13px;}
+  .sh-actions{display:grid; grid-template-columns:42px 1fr 1fr 42px; gap:6px; margin-top:14px;}
+  .sh-btn{height:42px; border-radius:12px; background:var(--panel-raised); display:flex; align-items:center; justify-content:center; gap:7px; font-size:12px; font-weight:700; color:var(--text); transition:transform .15s, opacity .2s;}
+  .sh-btn:active{transform:scale(.94);}
+  .sh-btn:disabled{opacity:.3; pointer-events:none;}
+  .sh-btn.pri{background:var(--amber); color:var(--amber-ink);}
+  .sh-btn svg.i{width:16px; height:16px;}
+
+  .toast{position:fixed; left:50%; bottom:calc(92px + var(--safe-b)); z-index:60; transform:translate(-50%, 20px); opacity:0; pointer-events:none;
+    background:var(--text); color:var(--ink); font-size:12px; font-weight:700; padding:9px 14px; border-radius:10px; transition:transform .3s var(--spring), opacity .25s;}
+  .toast.show{transform:translate(-50%, 0); opacity:1;}
+
+  /* ============ BOTTOM NAV ============ */
+  nav.bottomnav{position:fixed; left:0; right:0; bottom:0; z-index:40; background:color-mix(in srgb, var(--panel) 88%, transparent);
+    -webkit-backdrop-filter:saturate(1.4) blur(16px); backdrop-filter:saturate(1.4) blur(16px); border-top:1px solid var(--line); padding-bottom:var(--safe-b);}
+  .nav-in{position:relative; display:flex; max-width:640px; margin:0 auto;}
+  .nav-ind{position:absolute; top:0; left:0; width:25%; height:100%; pointer-events:none; transform:translateX(calc(var(--k, 0) * 100%)); transition:transform .45s var(--spring);}
+  .nav-ind::before{content:''; position:absolute; top:8px; left:50%; width:58px; height:30px; margin-left:-29px; border-radius:15px; background:var(--amber-soft);}
+  .nav-ind::after{content:''; position:absolute; top:-1px; left:50%; width:26px; height:2px; margin-left:-13px; border-radius:0 0 2px 2px; background:var(--amber); box-shadow:0 0 10px var(--amber);}
+  .nav-btn{position:relative; flex:1; color:var(--text-faint); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:8px 4px; min-height:62px; transition:color .25s;}
+  .nav-btn .ni{width:58px; height:30px; display:flex; align-items:center; justify-content:center; transition:transform .2s;}
+  .nav-btn .nl{font-size:10.5px; font-weight:700; letter-spacing:.1px;}
+  .nav-btn.active{color:var(--amber);}
+  .nav-btn.active .ni svg{animation:nav-pop .45s var(--spring);}
+  @keyframes nav-pop{0%{transform:scale(.7) translateY(3px);} 100%{transform:none;}}
+  .nav-btn:active .ni{transform:scale(.88);}
+  .nav-badge{position:absolute; top:7px; left:50%; margin-left:9px; min-width:15px; height:15px; border-radius:8px; background:var(--amber); color:#0B0D12;
+    font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *, *::before, *::after{animation:none !important; transition:none !important;}
+    .ag-row.rv{opacity:1; translate:none;}
+    .ag-row.rv.past{opacity:.5;}
+  }
 </style>
 </head>
 <body>
 
 <header id="pageHeader">
-  <div class="brandrow">
-    <div class="seal">MK</div>
-    <h1>PSG Institute of Management</h1>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">&#9789;</button>
-  </div>
-  <div class="sub">Academic Calendar 2026 &ndash; 2027</div>
-
-  <div id="todayCard">
-    <div class="today-badge">
-      <div class="tb-day" id="tbDay">&nbsp;</div>
-      <div class="tb-mon" id="tbMon">&nbsp;</div>
+  <div class="toprow">
+    <div class="mark" aria-hidden="true">MK</div>
+    <div class="titleblock">
+      <h1>Academic Calendar</h1>
+      <div class="sub" id="headerSub">PSGIM · 2026–27</div>
     </div>
-    <div class="today-info">
-      <div class="label"><span>Today</span><button class="share-btn" onclick="shareToday()" aria-label="Share today">Share &#8599;</button></div>
-      <div class="date" id="todayDate">&nbsp;</div>
-      <div class="event" id="todayEvent">&nbsp;</div>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" id="tabList" onclick="switchTab('list')">LIST VIEW</button>
-    <button class="tab-btn" id="tabMonth" onclick="switchTab('month')">MONTH VIEW</button>
+    <div class="clock" aria-label="Current time"><div class="t" id="clockT"></div><div class="d" id="clockD"></div></div>
+    <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light or dark theme">
+      <svg class="i ico-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      <svg class="i ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
   </div>
 </header>
 
-<div id="searchWrap">
-  <div style="position:relative;">
-    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;opacity:0.45;pointer-events:none;">&#128269;</span>
-    <input type="text" id="searchBox" style="padding-left:32px;" placeholder="Search events (e.g. exam, holiday, viva)..." oninput="applyFilters()">
-  </div>
-</div>
-<div id="legendWrap">
-  <div class="chip active" data-cat="all" onclick="setCategory('all')"><span>All</span></div>
-  <div class="chip" data-cat="holiday" onclick="setCategory('holiday')"><span class="dot" style="background:var(--cat-holiday)"></span><span>Holiday</span></div>
-  <div class="chip" data-cat="exam" onclick="setCategory('exam')"><span class="dot" style="background:var(--cat-exam)"></span><span>Exam</span></div>
-  <div class="chip" data-cat="placement" onclick="setCategory('placement')"><span class="dot" style="background:var(--cat-placement)"></span><span>Placement/Internship</span></div>
-  <div class="chip" data-cat="event" onclick="setCategory('event')"><span class="dot" style="background:var(--cat-event)"></span><span>Other Event</span></div>
-</div>
-
 <main>
-  <div id="listContainer"></div>
+  <!-- ===== TODAY ===== -->
+  <section id="view-today" class="view on">
+    <div class="ticker-panel rise" id="board" style="--d:0">
+      <div class="ticker-head" id="boardHead"></div>
+      <div class="ticker-tape"><div class="ticker-track" id="tickerTrack"></div></div>
+    </div>
+    <div class="cd-row rise" id="cdRow" style="--d:1"></div>
+    <div class="card rise" id="weekCard" style="--d:2"></div>
+    <div class="card rise" id="yearCard" style="--d:3"></div>
+    <div class="section-title rise" style="--d:4">Coming up <span class="n" id="upN"></span></div>
+    <div class="tl" id="upcoming"></div>
+  </section>
 
-  <div id="monthView">
-    <div class="month-nav">
-      <button onclick="changeMonth(-1)" aria-label="Previous month">&#8249;</button>
-      <div class="label" id="monthLabel">&nbsp;</div>
-      <button onclick="changeMonth(1)" aria-label="Next month">&#8250;</button>
+  <!-- ===== MONTH ===== -->
+  <section id="view-month" class="view">
+    <div class="mh">
+      <button class="nav-arrow" id="mPrev" onclick="shiftMonth(-1)" aria-label="Previous month"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="mh-title" id="mTitle"></div>
+      <button class="nav-arrow" id="mNext" onclick="shiftMonth(1)" aria-label="Next month"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
-    <div class="swipe-hint">&#8592; swipe to change month &#8594;</div>
-    <div class="weekday-row">
-      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div style="color:var(--heading-accent);">Sat</div><div style="color:var(--heading-accent);">Sun</div>
+    <div class="legend" id="mLegend"></div>
+    <div class="cal-card">
+      <div class="dow"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span class="we">SAT</span><span class="we">SUN</span></div>
+      <div class="cal-vp" id="calVp"><div class="cal-grid" id="calGrid"></div></div>
+      <div class="cal-dots" id="calDots"></div>
     </div>
-    <div class="grid" id="monthGrid"></div>
-    <div id="dayDetail"><span class="dd-empty">Tap a date to see its details.</span></div>
-  </div>
+    <div class="mh-today" id="mToday"></div>
+    <div class="detail" id="detail"></div>
+    <div class="section-title" id="mlTitle"></div>
+    <div id="mList"></div>
+  </section>
+
+  <!-- ===== AGENDA ===== -->
+  <section id="view-agenda" class="view">
+    <div class="searchwrap">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input class="searchbox" id="q" type="search" placeholder="Search exam, holiday, viva, GIP…" oninput="onSearch()" autocomplete="off" enterkeyhint="search">
+      <button class="search-clear" id="qClear" aria-label="Clear search" onclick="clearSearch()"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="ag-ctrl">
+      <div class="seg" id="agSeg" style="--n:2; --k:0">
+        <span class="seg-thumb"></span>
+        <button class="active" onclick="setAgMode('all')">All days</button>
+        <button onclick="setAgMode('events')">Events</button>
+      </div>
+      <div class="ag-count" id="agCount"></div>
+    </div>
+    <div class="legend" id="aLegend"></div>
+    <div id="agenda"></div>
+    <div class="ag-foot">Shading follows the PSGIM calendar file<br><i style="background:color-mix(in srgb, var(--c-weekend) 45%, var(--panel))"></i>Weekend<i style="background:color-mix(in srgb, var(--c-holiday) 55%, var(--panel))"></i>Holiday</div>
+  </section>
+
+  <!-- ===== KEY DATES ===== -->
+  <section id="view-dates" class="view">
+    <div class="card" id="kdCard"></div>
+    <div class="seg" id="kdSeg" style="--n:3; --k:0; margin-bottom:6px">
+      <span class="seg-thumb"></span>
+      <button class="active" onclick="setKd('holiday')">Holidays</button>
+      <button onclick="setKd('exam')">Exams</button>
+      <button onclick="setKd('placement')">Placement</button>
+    </div>
+    <div id="kdList"></div>
+  </section>
 </main>
 
-<div id="fabWrap">
-  <button class="fab" id="fabTop" onclick="scrollToTopBottom('top')" aria-label="Scroll to top">&#8593;</button>
-  <button class="fab gold" onclick="jumpToToday()" aria-label="Jump to today">&#9673;</button>
-  <button class="fab" id="fabBottom" onclick="scrollToTopBottom('bottom')" aria-label="Scroll to bottom">&#8595;</button>
-</div>
+<button class="jump-fab" id="jumpFab" onclick="agendaToToday(true)" aria-label="Jump to today">
+  <svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Today
+</button>
 
-<footer>Colours match the original PSGIM calendar file &middot; Today auto-updates from your device's date</footer>
+<nav class="bottomnav">
+  <div class="nav-in">
+    <span class="nav-ind" id="navInd"></span>
+    <button class="nav-btn active" id="nav-today" onclick="switchTab('today')">
+      <span class="ni"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="nl">Today</span>
+    </button>
+    <button class="nav-btn" id="nav-month" onclick="switchTab('month')">
+      <span class="ni"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v3M16 2.5v3"/><path d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01" stroke-width="2.6"/></svg></span><span class="nl">Month</span>
+    </button>
+    <button class="nav-btn" id="nav-agenda" onclick="switchTab('agenda')">
+      <span class="ni"><svg class="i" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.8"/></svg></span><span class="nl">Agenda</span>
+    </button>
+    <button class="nav-btn" id="nav-dates" onclick="switchTab('dates')">
+      <span class="ni"><svg class="i" viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4.5h11.5l-2 4 2 4H5"/></svg></span><span class="nl">Dates</span>
+      <span class="nav-badge" id="navBadge" style="display:none"></span>
+    </button>
+  </div>
+</nav>
+
+<div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Day details">
+    <div class="sheet-handle"></div>
+    <div id="sheetContent"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-const DATA = [{"date":"2026-07-20","day":"Mon","particulars":"II MBA / II MBA WMSE - Semester III Commences - Meeting with Director / \nCommencement of Project phase I","color":null,"cat":"event"},{"date":"2026-07-21","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-07-22","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-07-23","day":"Thu","particulars":"CRMT - 2026 - International Conference","color":null,"cat":"event"},{"date":"2026-07-24","day":"Fri","particulars":"CRMT - 2026 - International Conference","color":null,"cat":"event"},{"date":"2026-07-25","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-07-26","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2026-07-27","day":"Mon","particulars":"Board Room Simulation for II MBA","color":null,"cat":"event"},{"date":"2026-07-28","day":"Tue","particulars":"Board Room Simulation for II MBA","color":null,"cat":"event"},{"date":"2026-07-29","day":"Wed","particulars":"II Year - MBA / MBA (WMSE)  Internship Poster Presentation","color":null,"cat":"placement"},{"date":"2026-07-30","day":"Thu","particulars":"Board Room Simulation for II MBA","color":null,"cat":"event"},{"date":"2026-07-31","day":"Fri","particulars":"Board Room Simulation for II MBA","color":null,"cat":"event"},{"date":"2026-08-01","day":"Sat","particulars":"Board Room Simulation for II MBA","color":"#B6D7A8","cat":"event"},{"date":"2026-08-02","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-08-03","day":"Mon","particulars":"II MBA Project Work / \nI MBA  Induction  MBA , MBA WMSE,ISW and IMBA","color":null,"cat":"placement"},{"date":"2026-08-04","day":"Tue","particulars":"II year NKU Semester III begins/ I MBA induction/ Integrated MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-05","day":"Wed","particulars":"II MBA Project Work / \n/I MBA induction/Integrated MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-06","day":"Thu","particulars":"II MBA Project Work / \nInduction / II Year NKU Internship Viva","color":null,"cat":"placement"},{"date":"2026-08-07","day":"Fri","particulars":"Summer courses ends for II year UT /\nI Year MBA - Induction - ALPS Visit","color":null,"cat":"placement"},{"date":"2026-08-08","day":"Sat","particulars":"I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students","color":"#93C47D","cat":"placement"},{"date":"2026-08-09","day":"Sun","particulars":"I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students","color":"#93C47D","cat":"placement"},{"date":"2026-08-10","day":"Mon","particulars":"II year  MBA placement training / I MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-11","day":"Tue","particulars":"II year  MBA placement training / I MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-12","day":"Wed","particulars":"II year  MBA placement training / I MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-13","day":"Thu","particulars":"II year  MBA placement training / I MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-14","day":"Fri","particulars":"II year  MBA placement training / I MBA Induction","color":null,"cat":"placement"},{"date":"2026-08-15","day":"Sat","particulars":"Independence Day/ I MBA induction/ Integrated MBA Induction","color":"#93C47D","cat":"placement"},{"date":"2026-08-16","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2026-08-17","day":"Mon","particulars":"II year MBA regular classes resume/ \nI Year MBA, MBA(WMSE), MBA(ISW) and IMBA Classes Commence","color":null,"cat":"event"},{"date":"2026-08-18","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-08-19","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-08-20","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-08-21","day":"Fri","particulars":"","color":"#FFFFFF","cat":null},{"date":"2026-08-22","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-08-23","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-08-24","day":"Mon","particulars":"Week of Games / II MBA Project viva Phase I - WEEK","color":"#FFFFFF","cat":"event"},{"date":"2026-08-25","day":"Tue","particulars":"Week of Games","color":"#FFFFFF","cat":"event"},{"date":"2026-08-26","day":"Wed","particulars":"Holiday - Miladi Nabi / Onam","color":"#EA9999","cat":"holiday"},{"date":"2026-08-27","day":"Thu","particulars":"Week of Games","color":"#FFFFFF","cat":"event"},{"date":"2026-08-28","day":"Fri","particulars":"Week of Games","color":"#FFFFFF","cat":"event"},{"date":"2026-08-29","day":"Sat","particulars":"Finance Bootcamp - II Year MBA Students","color":"#B6D7A8","cat":"event"},{"date":"2026-08-30","day":"Sun","particulars":"Finance Bootcamp - II Year MBA Students","color":"#B6D7A8","cat":"event"},{"date":"2026-08-31","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-09-01","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-09-02","day":"Wed","particulars":"Foundation Day","color":null,"cat":"event"},{"date":"2026-09-03","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-09-04","day":"Fri","particulars":"Holiday - Krishna Jayanthi","color":"#EA9999","cat":"holiday"},{"date":"2026-09-05","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-09-06","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-09-07","day":"Mon","particulars":"WOW","color":"#FFFFFF","cat":"event"},{"date":"2026-09-08","day":"Tue","particulars":"WOW","color":null,"cat":"event"},{"date":"2026-09-09","day":"Wed","particulars":"WOW","color":null,"cat":"event"},{"date":"2026-09-10","day":"Thu","particulars":"WOW","color":null,"cat":"event"},{"date":"2026-09-11","day":"Fri","particulars":"WOW","color":null,"cat":"event"},{"date":"2026-09-12","day":"Sat","particulars":"WOW Finale","color":"#B6D7A8","cat":"event"},{"date":"2026-09-13","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-09-14","day":"Mon","particulars":"Holiday - vinayagar chaturthi","color":"#EA9999","cat":"holiday"},{"date":"2026-09-15","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-09-16","day":"Wed","particulars":"Class committee meeting - I for Integrated MBA 1st Semester","color":null,"cat":"event"},{"date":"2026-09-17","day":"Thu","particulars":"Class committee meeting I for I year  MBA / MBA WMSE and UT, NKU, IIT & LBU","color":null,"cat":"event"},{"date":"2026-09-18","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2026-09-19","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-09-20","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-09-21","day":"Mon","particulars":"Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT","color":null,"cat":"exam"},{"date":"2026-09-22","day":"Tue","particulars":"Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT","color":null,"cat":"exam"},{"date":"2026-09-23","day":"Wed","particulars":"Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT","color":null,"cat":"exam"},{"date":"2026-09-24","day":"Thu","particulars":"Mid term examination for I Yr UT,NKU, LBU , IIT/ Class committee meeting -I  for II year UT,  NKU,  MBA, & WMSE","color":null,"cat":"exam"},{"date":"2026-09-25","day":"Fri","particulars":"TEAM-ALPS for First Year MBA Batch-1","color":null,"cat":"event"},{"date":"2026-09-26","day":"Sat","particulars":"TEAM-ALPS for First Year MBA Batch-1","color":"#B6D7A8","cat":"event"},{"date":"2026-09-27","day":"Sun","particulars":"TEAM-ALPS for First Year MBA Batch-1","color":"#B6D7A8","cat":"event"},{"date":"2026-09-28","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-09-29","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-09-30","day":"Wed","particulars":"Class committee meeting- II for I year LBU","color":null,"cat":"event"},{"date":"2026-10-01","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-10-02","day":"Fri","particulars":"Holiday - Gandhi Jayanthi","color":"#EA9999","cat":"holiday"},{"date":"2026-10-03","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-10-04","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-10-05","day":"Mon","particulars":"Project Interim Review  Week","color":null,"cat":"event"},{"date":"2026-10-06","day":"Tue","particulars":"Project Interim Review  Week","color":null,"cat":"event"},{"date":"2026-10-07","day":"Wed","particulars":"Project Interim Review  Week / Class committee meeting- III for I year LBU","color":null,"cat":"event"},{"date":"2026-10-08","day":"Thu","particulars":"Project Interim Review  Week","color":null,"cat":"event"},{"date":"2026-10-09","day":"Fri","particulars":"Talent Night / Last Working Day for LBU","color":null,"cat":"event"},{"date":"2026-10-10","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-10-11","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-10-12","day":"Mon","particulars":"Class committee meeting - II for Integrated MBA 1st Semester / Semester Exam commence for LBU","color":null,"cat":"exam"},{"date":"2026-10-13","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-10-14","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-10-15","day":"Thu","particulars":"Class committee meeting- II for I year UT,  NKU,  IIT,  MBA, & WMSE/ II MBA & WMSE - Project Interim Review","color":null,"cat":"event"},{"date":"2026-10-16","day":"Fri","particulars":"Semester Exam end for LBU","color":null,"cat":"exam"},{"date":"2026-10-17","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-10-18","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-10-19","day":"Mon","particulars":"Holiday - Saraswathi Pooja","color":"#EA9999","cat":"holiday"},{"date":"2026-10-20","day":"Tue","particulars":"Holiday - Vijayadashami","color":"#EA9999","cat":"holiday"},{"date":"2026-10-21","day":"Wed","particulars":"Mid term examination - 2 for Integrated MBA 1st Semester","color":null,"cat":"exam"},{"date":"2026-10-22","day":"Thu","particulars":"Mid term examination - 2 for Integrated MBA 1st Semester","color":null,"cat":"exam"},{"date":"2026-10-23","day":"Fri","particulars":"Mid term examination - 2 for Integrated MBA 1st Semester / TEAM-ALPS for First Year MBA Batch-2","color":null,"cat":"exam"},{"date":"2026-10-24","day":"Sat","particulars":"Publication of LBU Results / TEAM-ALPS for First Year MBA Batch-2","color":"#B6D7A8","cat":"event"},{"date":"2026-10-25","day":"Sun","particulars":"TEAM-ALPS for First Year MBA Batch-2","color":"#B6D7A8","cat":"event"},{"date":"2026-10-26","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-10-27","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-10-28","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-10-29","day":"Thu","particulars":"Class Committee Meeting-II for II Year UT, NKU, Anna & WMSE / \nClass committee meeting- II for II year UT,  NKU,  IIT,  MBA, & WMSE","color":null,"cat":"event"},{"date":"2026-10-30","day":"Fri","particulars":"TEAM-ALPS for First Year MBA Batch-3","color":null,"cat":"event"},{"date":"2026-10-31","day":"Sat","particulars":"TEAM-ALPS for First Year MBA Batch-3","color":"#B6D7A8","cat":"event"},{"date":"2026-11-01","day":"Sun","particulars":"TEAM-ALPS for First Year MBA Batch-3","color":"#B6D7A8","cat":"event"},{"date":"2026-11-02","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-11-03","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-11-04","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-11-05","day":"Thu","particulars":"Project Phase II Report Submission","color":null,"cat":"event"},{"date":"2026-11-06","day":"Fri","particulars":"Diwali Celebration in Manavar Illam/ Last Working Day for I Year UT, NKU & IIT","color":null,"cat":"event"},{"date":"2026-11-07","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-11-08","day":"Sun","particulars":"Holiay- Diwali","color":"#B6D7A8","cat":"holiday"},{"date":"2026-11-09","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-11-10","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-11-11","day":"Wed","particulars":"Class committee meeting - III for Integrated MBA 1st Semester","color":"#FFFFFF","cat":"event"},{"date":"2026-11-12","day":"Thu","particulars":"Class committee meeting - III for I MBA & MBA WMSE , UT, NKU and IIT","color":null,"cat":"event"},{"date":"2026-11-13","day":"Fri","particulars":"Project Viva Voce - II MBA & WMSE / TEAM-ALPS for First Year MBA ISW","color":null,"cat":"event"},{"date":"2026-11-14","day":"Sat","particulars":"TEAM-ALPS for First Year MBA ISW","color":"#B6D7A8","cat":"event"},{"date":"2026-11-15","day":"Sun","particulars":"TEAM-ALPS for First Year MBA ISW","color":"#B6D7A8","cat":"event"},{"date":"2026-11-16","day":"Mon","particulars":"Semester III Exam begins for II Year MBA, WMSE, UT & NKU","color":null,"cat":"exam"},{"date":"2026-11-17","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-11-18","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-11-19","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-11-20","day":"Fri","particulars":"Social Sensitiation for Managers Viva I MBA /\nLast Working day for II Year MBA & WMSE, UT & NKU / I year UT,NKU & IIT","color":null,"cat":"event"},{"date":"2026-11-21","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2026-11-22","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2026-11-23","day":"Mon","particulars":"Semester III Exam begins for II Year MBA, WMSE, UT ,NKU & IIT / Semester-I  exams begins I-year UT,NKU & IIT","color":null,"cat":"exam"},{"date":"2026-11-24","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-11-25","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-11-26","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-11-27","day":"Fri","particulars":"Last Working day for I year MBA & WMSE and  Integrated MBA 1st Semester","color":null,"cat":"event"},{"date":"2026-11-28","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-11-29","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-11-30","day":"Mon","particulars":"End Semester Exam begins for I MBA , MBA  WMSE and  Integrated MBA / Semester Exam end for I-year UT,NKU &IIT","color":null,"cat":"exam"},{"date":"2026-12-01","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-12-02","day":"Wed","particulars":"Semester II Class Commence for I Year UT & NKU\nSemester IV class commence for II Year MBA, WMSE & NKU,UT\nCapstone course commence for II year UT (Tentative)","color":null,"cat":"event"},{"date":"2026-12-03","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-12-04","day":"Fri","particulars":"","color":"#FFFFFF","cat":null},{"date":"2026-12-05","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-12-06","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-12-07","day":"Mon","particulars":"Class Commenses for  I year MBA / MBA WMSE/ Semester II class commences for Integrated MBA","color":null,"cat":"event"},{"date":"2026-12-08","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-12-09","day":"Wed","particulars":"Semester IV class commence for II Year MBA, WMSE & NKU,UT","color":null,"cat":"event"},{"date":"2026-12-10","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-12-11","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2026-12-12","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2026-12-13","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2026-12-14","day":"Mon","particulars":"","color":"#FFFFFF","cat":null},{"date":"2026-12-15","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-12-16","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-12-17","day":"Thu","particulars":"AIMS Convention","color":null,"cat":"event"},{"date":"2026-12-18","day":"Fri","particulars":"Capstone course end for UT (Tentative)/AIMS Convention","color":null,"cat":"event"},{"date":"2026-12-19","day":"Sat","particulars":"Rapport /AIMS Convention","color":"#B6D7A8","cat":"event"},{"date":"2026-12-20","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-12-21","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-12-22","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-12-23","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-12-24","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2026-12-25","day":"Fri","particulars":"Holiday - Christmas","color":"#EA9999","cat":"holiday"},{"date":"2026-12-26","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-12-27","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2026-12-28","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2026-12-29","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2026-12-30","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2026-12-31","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-01-01","day":"Fri","particulars":"Holiday - New Year","color":"#EA9999","cat":"holiday"},{"date":"2027-01-02","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-01-03","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-01-04","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-01-05","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-01-06","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-01-07","day":"Thu","particulars":"Class Committee Meeting -I for II Year MBA, WMSE & NKU","color":null,"cat":"event"},{"date":"2027-01-08","day":"Fri","particulars":"Class Committee Meeting -I for I year MBA & WMSE","color":null,"cat":"event"},{"date":"2027-01-09","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-01-10","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-01-11","day":"Mon","particulars":"Semester-II exam begins for I year UT & NKU/ Class Committee Meeting -I for Integrated MBA 2nd Semester","color":"#FFFFFF","cat":"exam"},{"date":"2027-01-12","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-01-13","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-01-14","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-01-15","day":"Fri","particulars":"Holiday - Pongal","color":"#EA9999","cat":"holiday"},{"date":"2027-01-16","day":"Sat","particulars":"Holiday - Thiruvalluvar Day","color":"#EA9999","cat":"holiday"},{"date":"2027-01-17","day":"Sun","particulars":"Holiday - Uzhavar Thirunal","color":"#EA9999","cat":"holiday"},{"date":"2027-01-18","day":"Mon","particulars":"Mid term Examination for I year MBA & WMSE/ Mid term Examination for Integrated MBA 2nd Semester","color":null,"cat":"exam"},{"date":"2027-01-19","day":"Tue","particulars":"Mid term Examination for I year MBA & WMSE / Spring Courses commence for I year NKU/ Mid term Examination for Integrated MBA 2nd Semester","color":null,"cat":"exam"},{"date":"2027-01-20","day":"Wed","particulars":"Mid term Examination for I year MBA & WMSE / Mid term Examination for Integrated MBA 2nd Semester","color":null,"cat":"exam"},{"date":"2027-01-21","day":"Thu","particulars":"Class Committee Meeting -I for II Year MBA, WMSE & NKU ,UT","color":null,"cat":"event"},{"date":"2027-01-22","day":"Fri","particulars":"Srijana 2026","color":null,"cat":"event"},{"date":"2027-01-23","day":"Sat","particulars":"Srijana 2026","color":"#B6D7A8","cat":"event"},{"date":"2027-01-24","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-01-25","day":"Mon","particulars":"","color":"#FFFFFF","cat":null},{"date":"2027-01-26","day":"Tue","particulars":"Holiday - Republic Day/ GIP","color":"#EA9999","cat":"holiday"},{"date":"2027-01-27","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-01-28","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-01-29","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-01-30","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-01-31","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-02-01","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-02-02","day":"Tue","particulars":"C.R.Swaminathan Endowment Lecture","color":null,"cat":"event"},{"date":"2027-02-03","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-02-04","day":"Thu","particulars":"Summer Internship Begins -First Year UT","color":null,"cat":"placement"},{"date":"2027-02-05","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-02-06","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2027-02-07","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2027-02-08","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-02-09","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-02-10","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-02-11","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-02-12","day":"Fri","particulars":"Class Committee Meeting -II for Integrated MBA 2nd Semester","color":null,"cat":"event"},{"date":"2027-02-13","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-02-14","day":"Sun","particulars":"GIP","color":"#B6D7A8","cat":"placement"},{"date":"2027-02-15","day":"Mon","particulars":"GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester","color":"#FFFFFF","cat":"exam"},{"date":"2027-02-16","day":"Tue","particulars":"GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester","color":"#FFFFFF","cat":"exam"},{"date":"2027-02-17","day":"Wed","particulars":"GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester","color":"#FFFFFF","cat":"exam"},{"date":"2027-02-18","day":"Thu","particulars":"GIP              Class Committee Meeting - II for II year MBA, WMSE & NKU","color":null,"cat":"placement"},{"date":"2027-02-19","day":"Fri","particulars":"GIP / Class Committee Meeting - II for I year MBA, WMSE & NKU","color":null,"cat":"placement"},{"date":"2027-02-20","day":"Sat","particulars":"GIP","color":"#93C47D","cat":"placement"},{"date":"2027-02-21","day":"Sun","particulars":"GIP","color":"#93C47D","cat":"placement"},{"date":"2027-02-22","day":"Mon","particulars":"GIP","color":"#FFFFFF","cat":"placement"},{"date":"2027-02-23","day":"Tue","particulars":"GIP","color":"#FFFFFF","cat":"placement"},{"date":"2027-02-24","day":"Wed","particulars":"GIP","color":null,"cat":"placement"},{"date":"2027-02-25","day":"Thu","particulars":"GIP / Class Committee Meeting - II for II year MBA, WMSE & NKU,UT","color":"#FFFFFF","cat":"placement"},{"date":"2027-02-26","day":"Fri","particulars":"GIP","color":"#FFFFFF","cat":"placement"},{"date":"2027-02-27","day":"Sat","particulars":"GIP / II MBA & WMSE - Completion of Project","color":"#B6D7A8","cat":"placement"},{"date":"2027-02-28","day":"Sun","particulars":"GIP","color":"#B6D7A8","cat":"placement"},{"date":"2027-03-01","day":"Mon","particulars":"Last day for submission of Internship companies to Program office for I year NKU","color":null,"cat":"placement"},{"date":"2027-03-02","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-03-03","day":"Wed","particulars":"AIMA NSMG 2027","color":null,"cat":"event"},{"date":"2027-03-04","day":"Thu","particulars":"AIMA NSMG 2027","color":null,"cat":"event"},{"date":"2027-03-05","day":"Fri","particulars":"AIMA NSMG 2027","color":null,"cat":"event"},{"date":"2027-03-06","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-03-07","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-03-08","day":"Mon","particulars":"International Women's day 2027/ Capstone Course commence for II Year NKU","color":null,"cat":"event"},{"date":"2027-03-09","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-03-10","day":"Wed","particulars":"Holiday Ramzan","color":"#EA9999","cat":"holiday"},{"date":"2027-03-11","day":"Thu","particulars":"Class Committee Meeting - II for I year MBA, WMSE & NKU","color":null,"cat":"event"},{"date":"2027-03-12","day":"Fri","particulars":"Class Committee meeting- III for Integrated MBA 2nd Semester / Annual Day 2027","color":null,"cat":"event"},{"date":"2027-03-13","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-03-14","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-03-15","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-03-16","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-03-17","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-03-18","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-03-19","day":"Fri","particulars":"Last Working Day for II Year MBA & WMSE ,UT,NKU","color":null,"cat":"event"},{"date":"2027-03-20","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2027-03-21","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2027-03-22","day":"Mon","particulars":"Semester IV exam begins for II Year Anna & WMSE,UT,NKU","color":null,"cat":"exam"},{"date":"2027-03-23","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-03-24","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-03-25","day":"Thu","particulars":"Capstone Course End for II Year NKU / Last Working Day for II Year MBA & WMSE ,UT,NKU","color":null,"cat":"event"},{"date":"2027-03-26","day":"Fri","particulars":"Holiday - Good Friday","color":"#EA9999","cat":"holiday"},{"date":"2027-03-27","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2027-03-28","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2027-03-29","day":"Mon","particulars":"Semester IV exam begins for II Year Anna & WMSE,UT,NKU","color":null,"cat":"exam"},{"date":"2027-03-30","day":"Tue","particulars":"Last day for submission of Internship companies to Program office for I MBA & WMSE","color":null,"cat":"placement"},{"date":"2027-03-31","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-04-01","day":"Thu","particulars":"Class Committe meeting- III for I year MBA & WMSE","color":null,"cat":"event"},{"date":"2027-04-02","day":"Fri","particulars":"Spring Courses Ends for I year NKU/ Last Working Day for Integrated MBA 2nd Semester","color":null,"cat":"event"},{"date":"2027-04-03","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-04-04","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-04-05","day":"Mon","particulars":"Summer Internship Begins for I year NKU/ Semester II Examinations begins for Integrated MBA 2nd Semester","color":null,"cat":"exam"},{"date":"2027-04-06","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-04-07","day":"Wed","particulars":"Holiday -  Telugu New Year's Day","color":"#EA9999","cat":"holiday"},{"date":"2027-04-08","day":"Thu","particulars":"Business Immersion Viva for I MBA","color":null,"cat":"event"},{"date":"2027-04-09","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-04-10","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-04-11","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-04-12","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-04-13","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-04-14","day":"Wed","particulars":"Holiday - Tamil New Year","color":"#EA9999","cat":"holiday"},{"date":"2027-04-15","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-04-16","day":"Fri","particulars":"Last Working Day for I Year MBA & WMSE","color":null,"cat":"event"},{"date":"2027-04-17","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2027-04-18","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2027-04-19","day":"Mon","particulars":"Holiday - Mahaveer Jayanthi","color":"#EA9999","cat":"holiday"},{"date":"2027-04-20","day":"Tue","particulars":"Semeter Exam II begins for I MBA & WMSE","color":null,"cat":"exam"},{"date":"2027-04-21","day":"Wed","particulars":"Summer Intership end-First Year UT","color":null,"cat":"event"},{"date":"2027-04-22","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-04-23","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-04-24","day":"Sat","particulars":"","color":"#93C47D","cat":null},{"date":"2027-04-25","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2027-04-26","day":"Mon","particulars":"Summer Courses commence for I year UT (Tentative)","color":null,"cat":"event"},{"date":"2027-04-27","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-04-28","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-04-29","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-04-30","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-05-01","day":"Sat","particulars":"Holiday - May Day","color":"#93C47D","cat":"holiday"},{"date":"2027-05-02","day":"Sun","particulars":"","color":"#93C47D","cat":null},{"date":"2027-05-03","day":"Mon","particulars":"I MBA  Internship Begins","color":null,"cat":"placement"},{"date":"2027-05-04","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-05-05","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-05-06","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-05-07","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-05-08","day":"Sat","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-05-09","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-05-10","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-05-11","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-05-12","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-05-13","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-05-14","day":"Fri","particulars":"","color":null,"cat":null},{"date":"2027-05-15","day":"Sat","particulars":"Commencement Ceremony for II year MBA- Anna, WMSE, UT and NKU","color":"#B6D7A8","cat":"event"},{"date":"2027-05-16","day":"Sun","particulars":"","color":"#B6D7A8","cat":null},{"date":"2027-05-17","day":"Mon","particulars":"","color":null,"cat":null},{"date":"2027-05-18","day":"Tue","particulars":"","color":null,"cat":null},{"date":"2027-05-19","day":"Wed","particulars":"","color":null,"cat":null},{"date":"2027-05-20","day":"Thu","particulars":"","color":null,"cat":null},{"date":"2027-05-21","day":"Fri","particulars":"","color":null,"cat":null}];
+/* ================= DATA (from Calender_2026_-_Students.xlsx) =================
+   [date, particulars, shade]  shade: 0 none · 1 weekend · 2 weekend (darker) · 3 holiday (red) */
+const RAW = [["2026-07-20","II MBA / II MBA WMSE - Semester III Commences - Meeting with Director / \nCommencement of Project phase I",0],["2026-07-21","",0],["2026-07-22","",0],["2026-07-23","CRMT - 2026 - International Conference",0],["2026-07-24","CRMT - 2026 - International Conference",0],["2026-07-25","",1],["2026-07-26","",2],["2026-07-27","Board Room Simulation for II MBA",0],["2026-07-28","Board Room Simulation for II MBA",0],["2026-07-29","II Year - MBA / MBA (WMSE)  Internship Poster Presentation",0],["2026-07-30","Board Room Simulation for II MBA",0],["2026-07-31","Board Room Simulation for II MBA",0],["2026-08-01","Board Room Simulation for II MBA",1],["2026-08-02","",1],["2026-08-03","II MBA Project Work / \nI MBA  Induction  MBA , MBA WMSE,ISW and IMBA",0],["2026-08-04","II year NKU Semester III begins/ I MBA induction/ Integrated MBA Induction",0],["2026-08-05","II MBA Project Work / \n/I MBA induction/Integrated MBA Induction",0],["2026-08-06","II MBA Project Work / \nInduction / II Year NKU Internship Viva",0],["2026-08-07","Summer courses ends for II year UT /\nI Year MBA - Induction - ALPS Visit",0],["2026-08-08","I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students",2],["2026-08-09","I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students",2],["2026-08-10","II year  MBA placement training / I MBA Induction",0],["2026-08-11","II year  MBA placement training / I MBA Induction",0],["2026-08-12","II year  MBA placement training / I MBA Induction",0],["2026-08-13","II year  MBA placement training / I MBA Induction",0],["2026-08-14","II year  MBA placement training / I MBA Induction",0],["2026-08-15","Independence Day/ I MBA induction/ Integrated MBA Induction",2],["2026-08-16","",2],["2026-08-17","II year MBA regular classes resume/ \nI Year MBA, MBA(WMSE), MBA(ISW) and IMBA Classes Commence",0],["2026-08-18","",0],["2026-08-19","",0],["2026-08-20","",0],["2026-08-21","",0],["2026-08-22","",1],["2026-08-23","",1],["2026-08-24","Week of Games / II MBA Project viva Phase I - WEEK",0],["2026-08-25","Week of Games",0],["2026-08-26","Holiday - Miladi Nabi / Onam",3],["2026-08-27","Week of Games",0],["2026-08-28","Week of Games",0],["2026-08-29","Finance Bootcamp - II Year MBA Students",1],["2026-08-30","Finance Bootcamp - II Year MBA Students",1],["2026-08-31","",0],["2026-09-01","",0],["2026-09-02","Foundation Day",0],["2026-09-03","",0],["2026-09-04","Holiday - Krishna Jayanthi",3],["2026-09-05","",1],["2026-09-06","",1],["2026-09-07","WOW",0],["2026-09-08","WOW",0],["2026-09-09","WOW",0],["2026-09-10","WOW",0],["2026-09-11","WOW",0],["2026-09-12","WOW Finale",1],["2026-09-13","",1],["2026-09-14","Holiday - vinayagar chaturthi",3],["2026-09-15","",0],["2026-09-16","Class committee meeting - I for Integrated MBA 1st Semester",0],["2026-09-17","Class committee meeting I for I year  MBA / MBA WMSE and UT, NKU, IIT & LBU",0],["2026-09-18","",0],["2026-09-19","",1],["2026-09-20","",1],["2026-09-21","Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT",0],["2026-09-22","Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT",0],["2026-09-23","Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT",0],["2026-09-24","Mid term examination for I Yr UT,NKU, LBU , IIT/ Class committee meeting -I  for II year UT,  NKU,  MBA, & WMSE",0],["2026-09-25","TEAM-ALPS for First Year MBA Batch-1",0],["2026-09-26","TEAM-ALPS for First Year MBA Batch-1",1],["2026-09-27","TEAM-ALPS for First Year MBA Batch-1",1],["2026-09-28","",0],["2026-09-29","",0],["2026-09-30","Class committee meeting- II for I year LBU",0],["2026-10-01","",0],["2026-10-02","Holiday - Gandhi Jayanthi",3],["2026-10-03","",1],["2026-10-04","",1],["2026-10-05","Project Interim Review  Week",0],["2026-10-06","Project Interim Review  Week",0],["2026-10-07","Project Interim Review  Week / Class committee meeting- III for I year LBU",0],["2026-10-08","Project Interim Review  Week",0],["2026-10-09","Talent Night / Last Working Day for LBU",0],["2026-10-10","",1],["2026-10-11","",1],["2026-10-12","Class committee meeting - II for Integrated MBA 1st Semester / Semester Exam commence for LBU",0],["2026-10-13","",0],["2026-10-14","",0],["2026-10-15","Class committee meeting- II for I year UT,  NKU,  IIT,  MBA, & WMSE/ II MBA & WMSE - Project Interim Review",0],["2026-10-16","Semester Exam end for LBU",0],["2026-10-17","",1],["2026-10-18","",1],["2026-10-19","Holiday - Saraswathi Pooja",3],["2026-10-20","Holiday - Vijayadashami",3],["2026-10-21","Mid term examination - 2 for Integrated MBA 1st Semester",0],["2026-10-22","Mid term examination - 2 for Integrated MBA 1st Semester",0],["2026-10-23","Mid term examination - 2 for Integrated MBA 1st Semester / TEAM-ALPS for First Year MBA Batch-2",0],["2026-10-24","Publication of LBU Results / TEAM-ALPS for First Year MBA Batch-2",1],["2026-10-25","TEAM-ALPS for First Year MBA Batch-2",1],["2026-10-26","",0],["2026-10-27","",0],["2026-10-28","",0],["2026-10-29","Class Committee Meeting-II for II Year UT, NKU, Anna & WMSE / \nClass committee meeting- II for II year UT,  NKU,  IIT,  MBA, & WMSE",0],["2026-10-30","TEAM-ALPS for First Year MBA Batch-3",0],["2026-10-31","TEAM-ALPS for First Year MBA Batch-3",1],["2026-11-01","TEAM-ALPS for First Year MBA Batch-3",1],["2026-11-02","",0],["2026-11-03","",0],["2026-11-04","",0],["2026-11-05","Project Phase II Report Submission",0],["2026-11-06","Diwali Celebration in Manavar Illam/ Last Working Day for I Year UT, NKU & IIT",0],["2026-11-07","",1],["2026-11-08","Holiay- Diwali",1],["2026-11-09","",0],["2026-11-10","",0],["2026-11-11","Class committee meeting - III for Integrated MBA 1st Semester",0],["2026-11-12","Class committee meeting - III for I MBA & MBA WMSE , UT, NKU and IIT",0],["2026-11-13","Project Viva Voce - II MBA & WMSE / TEAM-ALPS for First Year MBA ISW",0],["2026-11-14","TEAM-ALPS for First Year MBA ISW",1],["2026-11-15","TEAM-ALPS for First Year MBA ISW",1],["2026-11-16","Semester III Exam begins for II Year MBA, WMSE, UT & NKU",0],["2026-11-17","",0],["2026-11-18","",0],["2026-11-19","",0],["2026-11-20","Social Sensitiation for Managers Viva I MBA /\nLast Working day for II Year MBA & WMSE, UT & NKU / I year UT,NKU & IIT",0],["2026-11-21","",2],["2026-11-22","",2],["2026-11-23","Semester III Exam begins for II Year MBA, WMSE, UT ,NKU & IIT / Semester-I  exams begins I-year UT,NKU & IIT",0],["2026-11-24","",0],["2026-11-25","",0],["2026-11-26","",0],["2026-11-27","Last Working day for I year MBA & WMSE and  Integrated MBA 1st Semester",0],["2026-11-28","",1],["2026-11-29","",1],["2026-11-30","End Semester Exam begins for I MBA , MBA  WMSE and  Integrated MBA / Semester Exam end for I-year UT,NKU &IIT",0],["2026-12-01","",0],["2026-12-02","Semester II Class Commence for I Year UT & NKU\nSemester IV class commence for II Year MBA, WMSE & NKU,UT\nCapstone course commence for II year UT (Tentative)",0],["2026-12-03","",0],["2026-12-04","",0],["2026-12-05","",1],["2026-12-06","",1],["2026-12-07","Class Commenses for  I year MBA / MBA WMSE/ Semester II class commences for Integrated MBA",0],["2026-12-08","",0],["2026-12-09","Semester IV class commence for II Year MBA, WMSE & NKU,UT",0],["2026-12-10","",0],["2026-12-11","",0],["2026-12-12","",2],["2026-12-13","",2],["2026-12-14","",0],["2026-12-15","",0],["2026-12-16","",0],["2026-12-17","AIMS Convention",0],["2026-12-18","Capstone course end for UT (Tentative)/AIMS Convention",0],["2026-12-19","Rapport /AIMS Convention",1],["2026-12-20","",1],["2026-12-21","",0],["2026-12-22","",0],["2026-12-23","",0],["2026-12-24","",0],["2026-12-25","Holiday - Christmas",3],["2026-12-26","",1],["2026-12-27","",1],["2026-12-28","",0],["2026-12-29","",0],["2026-12-30","",0],["2026-12-31","",0],["2027-01-01","Holiday - New Year",3],["2027-01-02","",1],["2027-01-03","",1],["2027-01-04","",0],["2027-01-05","",0],["2027-01-06","",0],["2027-01-07","Class Committee Meeting -I for II Year MBA, WMSE & NKU",0],["2027-01-08","Class Committee Meeting -I for I year MBA & WMSE",0],["2027-01-09","",1],["2027-01-10","",1],["2027-01-11","Semester-II exam begins for I year UT & NKU/ Class Committee Meeting -I for Integrated MBA 2nd Semester",0],["2027-01-12","",0],["2027-01-13","",0],["2027-01-14","",0],["2027-01-15","Holiday - Pongal",3],["2027-01-16","Holiday - Thiruvalluvar Day",3],["2027-01-17","Holiday - Uzhavar Thirunal",3],["2027-01-18","Mid term Examination for I year MBA & WMSE/ Mid term Examination for Integrated MBA 2nd Semester",0],["2027-01-19","Mid term Examination for I year MBA & WMSE / Spring Courses commence for I year NKU/ Mid term Examination for Integrated MBA 2nd Semester",0],["2027-01-20","Mid term Examination for I year MBA & WMSE / Mid term Examination for Integrated MBA 2nd Semester",0],["2027-01-21","Class Committee Meeting -I for II Year MBA, WMSE & NKU ,UT",0],["2027-01-22","Srijana 2026",0],["2027-01-23","Srijana 2026",1],["2027-01-24","",1],["2027-01-25","",0],["2027-01-26","Holiday - Republic Day/ GIP",3],["2027-01-27","",0],["2027-01-28","",0],["2027-01-29","",0],["2027-01-30","",1],["2027-01-31","",1],["2027-02-01","",0],["2027-02-02","C.R.Swaminathan Endowment Lecture",0],["2027-02-03","",0],["2027-02-04","Summer Internship Begins -First Year UT",0],["2027-02-05","",0],["2027-02-06","",2],["2027-02-07","",2],["2027-02-08","",0],["2027-02-09","",0],["2027-02-10","",0],["2027-02-11","",0],["2027-02-12","Class Committee Meeting -II for Integrated MBA 2nd Semester",0],["2027-02-13","",1],["2027-02-14","GIP",1],["2027-02-15","GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester",0],["2027-02-16","GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester",0],["2027-02-17","GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester",0],["2027-02-18","GIP              Class Committee Meeting - II for II year MBA, WMSE & NKU",0],["2027-02-19","GIP / Class Committee Meeting - II for I year MBA, WMSE & NKU",0],["2027-02-20","GIP",2],["2027-02-21","GIP",2],["2027-02-22","GIP",0],["2027-02-23","GIP",0],["2027-02-24","GIP",0],["2027-02-25","GIP / Class Committee Meeting - II for II year MBA, WMSE & NKU,UT",0],["2027-02-26","GIP",0],["2027-02-27","GIP / II MBA & WMSE - Completion of Project",1],["2027-02-28","GIP",1],["2027-03-01","Last day for submission of Internship companies to Program office for I year NKU",0],["2027-03-02","",0],["2027-03-03","AIMA NSMG 2027",0],["2027-03-04","AIMA NSMG 2027",0],["2027-03-05","AIMA NSMG 2027",0],["2027-03-06","",1],["2027-03-07","",1],["2027-03-08","International Women's day 2027/ Capstone Course commence for II Year NKU",0],["2027-03-09","",0],["2027-03-10","Holiday Ramzan",3],["2027-03-11","Class Committee Meeting - II for I year MBA, WMSE & NKU",0],["2027-03-12","Class Committee meeting- III for Integrated MBA 2nd Semester / Annual Day 2027",0],["2027-03-13","",1],["2027-03-14","",1],["2027-03-15","",0],["2027-03-16","",0],["2027-03-17","",0],["2027-03-18","",0],["2027-03-19","Last Working Day for II Year MBA & WMSE ,UT,NKU",0],["2027-03-20","",2],["2027-03-21","",2],["2027-03-22","Semester IV exam begins for II Year Anna & WMSE,UT,NKU",0],["2027-03-23","",0],["2027-03-24","",0],["2027-03-25","Capstone Course End for II Year NKU / Last Working Day for II Year MBA & WMSE ,UT,NKU",0],["2027-03-26","Holiday - Good Friday",3],["2027-03-27","",2],["2027-03-28","",2],["2027-03-29","Semester IV exam begins for II Year Anna & WMSE,UT,NKU",0],["2027-03-30","Last day for submission of Internship companies to Program office for I MBA & WMSE",0],["2027-03-31","",0],["2027-04-01","Class Committe meeting- III for I year MBA & WMSE",0],["2027-04-02","Spring Courses Ends for I year NKU/ Last Working Day for Integrated MBA 2nd Semester",0],["2027-04-03","",1],["2027-04-04","",1],["2027-04-05","Summer Internship Begins for I year NKU/ Semester II Examinations begins for Integrated MBA 2nd Semester",0],["2027-04-06","",0],["2027-04-07","Holiday -  Telugu New Year's Day",3],["2027-04-08","Business Immersion Viva for I MBA",0],["2027-04-09","",0],["2027-04-10","",1],["2027-04-11","",1],["2027-04-12","",0],["2027-04-13","",0],["2027-04-14","Holiday - Tamil New Year",3],["2027-04-15","",0],["2027-04-16","Last Working Day for I Year MBA & WMSE",0],["2027-04-17","",2],["2027-04-18","",2],["2027-04-19","Holiday - Mahaveer Jayanthi",3],["2027-04-20","Semeter Exam II begins for I MBA & WMSE",0],["2027-04-21","Summer Intership end-First Year UT",0],["2027-04-22","",0],["2027-04-23","",0],["2027-04-24","",2],["2027-04-25","",2],["2027-04-26","Summer Courses commence for I year UT (Tentative)",0],["2027-04-27","",0],["2027-04-28","",0],["2027-04-29","",0],["2027-04-30","",0],["2027-05-01","Holiday - May Day",2],["2027-05-02","",2],["2027-05-03","I MBA  Internship Begins",0],["2027-05-04","",0],["2027-05-05","",0],["2027-05-06","",0],["2027-05-07","",0],["2027-05-08","",1],["2027-05-09","",1],["2027-05-10","",0],["2027-05-11","",0],["2027-05-12","",0],["2027-05-13","",0],["2027-05-14","",0],["2027-05-15","Commencement Ceremony for II year MBA- Anna, WMSE, UT and NKU",1],["2027-05-16","",1],["2027-05-17","",0],["2027-05-18","",0],["2027-05-19","",0],["2027-05-20","",0],["2027-05-21","",0]];
+
+const CATS = {
+  holiday:  {label:'Holiday',   color:'var(--c-holiday)',   re:/holiday|holiay/i},
+  exam:     {label:'Exam',      color:'var(--c-exam)',      re:/exam/i},
+  placement:{label:'Placement', color:'var(--c-placement)', re:/placement|internship|\bgip\b|induction/i},
+  event:    {label:'Event',     color:'var(--c-event)'}
+};
+const CAT_KEYS = ['holiday','exam','placement','event'];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const CAT_COLORS = {holiday:'var(--cat-holiday)', exam:'var(--cat-exam)', placement:'var(--cat-placement)', event:'var(--cat-event)'};
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DOWL = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const DAY_MS = 86400000;
+const TABS = ['today','month','agenda','dates'];
 
-function todayISO() {
-  const d = new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
-}
-// A plain white fill in the source spreadsheet means "no highlight", same as
-// no fill at all - only treat it as a real colour if it's not white, so it
-// doesn't force a jarring solid-white card in dark mode.
-function hasRealColor(item) {
-  return !!(item && item.color && item.color.toUpperCase() !== '#FFFFFF');
+const pad = n => String(n).padStart(2,'0');
+function parseD(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function dkey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function dayDiff(a, b){ return Math.round((b - a) / DAY_MS); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function classify(t){
+  const tags = ['holiday','exam','placement'].filter(c => CATS[c].re.test(t));
+  if(!tags.length && t) tags.push('event');
+  return tags;
 }
 
-function fmtDate(iso) {
-  const [y,m,d] = iso.split('-').map(Number);
-  return {day: d, month: MONTHS[m-1].slice(0,3), monthFull: MONTHS[m-1], year: y, m: m};
-}
-function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+const DAYS = RAW.map((r, i) => {
+  const d = parseD(r[0]);
+  const text = r[1].replace(/\s*\n\s*/g, ' ').replace(/\s*\/\s*/g, ' / ').replace(/\s{2,}/g, ' ').replace(/^\s*\/\s*|\s*\/\s*$/g, '').trim();
+  const tags = classify(text);
+  return {i, key:r[0], d, dow:d.getDay(), text, shade:r[2], tags, cat:tags[0] || null, wknd:d.getDay()===0 || d.getDay()===6};
+});
+const BY_KEY = Object.fromEntries(DAYS.map(x => [x.key, x]));
+const START = DAYS[0].d, END = DAYS[DAYS.length-1].d;
+const TOTAL_WEEKS = Math.floor(dayDiff(START, END) / 7) + 1;
 
-const dataByDate = {};
-DATA.forEach(item => dataByDate[item.date] = item);
-
-const todayStr = todayISO();
-let todayRowEl = null;
-let currentView = 'list';
-let currentCategory = 'all';
-
-/* ---------------- THEME ---------------- */
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('themeToggle').innerHTML = theme === 'dark' ? '&#9728;' : '&#9789;';
-  try { localStorage.setItem('psgim-theme', theme); } catch(e) {}
+function cleanHoliday(t){ return t.replace(/^(holiday|holiay)\s*[-–:]?\s*/i, '').trim() || 'Holiday'; }
+/* For combined entries ("A / B"), the part that mentions the keyword. */
+function keySegment(t, kind){
+  const re = CATS[kind].re;
+  return t.split(' / ').find(p => re.test(p)) || t;
 }
-function toggleTheme() {
-  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  applyTheme(cur === 'dark' ? 'light' : 'dark');
-  vibrate(8);
-  requestAnimationFrame(updateStickyOffsets);
-}
-(function initTheme() {
-  let saved = null;
-  try { saved = localStorage.getItem('psgim-theme'); } catch(e) {}
-  if (!saved) {
-    saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+function catColor(x){ return x && x.cat ? CATS[x.cat].color : null; }
+
+/* Consecutive days with identical text collapse into one range ("21–23 Sep"). */
+function buildRanges(pred){
+  const out = [];
+  for(const x of DAYS){
+    if(!pred(x)) continue;
+    const last = out[out.length-1];
+    if(last && last.text === x.text && x.i === last.end.i + 1){ last.end = x; last.days++; }
+    else out.push({start:x, end:x, text:x.text, days:1, cat:x.cat, tags:x.tags});
   }
-  applyTheme(saved);
+  return out;
+}
+const RANGES = {
+  holiday:   buildRanges(x => x.tags.includes('holiday')),
+  exam:      buildRanges(x => x.tags.includes('exam')),
+  placement: buildRanges(x => x.tags.includes('placement')),
+  all:       buildRanges(x => !!x.text)
+};
+
+/* ================= TIME ================= */
+/* ?d=YYYY-MM-DD previews the app as if it were that date (clock keeps ticking). */
+let OFFSET = 0;
+(function(){
+  const q = new URLSearchParams(location.search).get('d');
+  if(q && /^\d{4}-\d{2}-\d{2}$/.test(q)){
+    const n = new Date(), t = parseD(q);
+    t.setHours(n.getHours(), n.getMinutes(), n.getSeconds(), n.getMilliseconds());
+    OFFSET = t - n;
+  }
 })();
+function now(){ return new Date(Date.now() + OFFSET); }
+let T0, TKEY, PHASE;
+function computeToday(){
+  const n = now();
+  T0 = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  TKEY = dkey(T0);
+  PHASE = T0 < START ? 'before' : T0 > END ? 'after' : 'during';
+}
+computeToday();
 
-/* ---------------- SHARE ---------------- */
-function shareToday() {
-  const item = dataByDate[todayStr];
-  const text = "Today (" + fmtDate(todayStr).day + " " + fmtDate(todayStr).monthFull + " " + fmtDate(todayStr).year + "): " +
-    (item && item.particulars ? item.particulars : "No events listed.");
-  if (navigator.share) {
-    navigator.share({title: "PSGIM Calendar - Today", text: text}).catch(()=>{});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
-  } else {
-    alert(text);
+function relDays(n){
+  if(n === 0) return 'Today';
+  if(n === 1) return 'Tomorrow';
+  if(n === -1) return 'Yesterday';
+  return n > 0 ? `in ${n} days` : `${-n} days ago`;
+}
+function fmtDur(sec){
+  sec = Math.max(0, Math.floor(sec));
+  const d = Math.floor(sec/86400), h = Math.floor(sec%86400/3600), m = Math.floor(sec%3600/60), s = sec%60;
+  if(d > 0) return `${d}d ${h}h ${pad(m)}m`;
+  if(h > 0) return `${h}h ${pad(m)}m`;
+  return `${m}:${pad(s)}`;
+}
+function shortDate(d){ return `${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`; }
+function rangeLabel(r){
+  const a = r.start.d, b = r.end.d;
+  if(r.days === 1) return shortDate(a);
+  if(a.getMonth() === b.getMonth()) return `${DOW[a.getDay()]}–${DOW[b.getDay()]} · ${a.getDate()}–${b.getDate()} ${MON[a.getMonth()]}`;
+  return `${a.getDate()} ${MON[a.getMonth()]} – ${b.getDate()} ${MON[b.getMonth()]}`;
+}
+function weekNo(d){ return Math.floor(dayDiff(START, d) / 7) + 1; }
+
+/* Text with styled "/" separators and optional search highlight. */
+function fmtText(t, q){
+  let s = esc(t).replace(/ \/ /g, '\u0001');
+  if(q){
+    const qq = esc(q).replace(/ ?\/ ?/g, '\u0001').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try { s = s.replace(new RegExp(qq, 'gi'), m => `<mark>${m}</mark>`); } catch(e){}
   }
+  return s.replace(/\u0001/g, ' <span class="sl">/</span> ');
+}
+function ctags(tags){ return tags.map(t => `<span class="ctag" style="--cc:${CATS[t].color}">${CATS[t].label}</span>`).join(''); }
+function vib(ms){ try { if(navigator.vibrate) navigator.vibrate(ms || 6); } catch(e){} }
+
+/* Count-up for numbers when they first appear. */
+function countUp(el, to, opts){
+  opts = opts || {};
+  const dur = opts.dur || 900, suffix = opts.suffix || '';
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ el.innerHTML = to + suffix; return; }
+  const t0 = performance.now();
+  function step(t){
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.innerHTML = Math.round(to * e) + suffix;
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+/* Digit-roll text: only the characters that changed animate in. */
+function setRoll(el, str){
+  if(!el || el.dataset.v === str) return;
+  const prev = el.dataset.v || '';
+  el.dataset.v = str;
+  if(prev.length !== str.length){ el.innerHTML = [...str].map(c => `<span>${c}</span>`).join(''); return; }
+  [...str].forEach((c, i) => {
+    if(prev[i] === c) return;
+    const sp = el.children[i]; if(!sp) return;
+    sp.textContent = c; sp.classList.remove('roll'); void sp.offsetWidth; sp.classList.add('roll');
+  });
 }
 
-/* ---------------- LIST VIEW ---------------- */
-const container = document.getElementById('listContainer');
-let lastMonth = null;
-DATA.forEach(item => {
-  const {day, month} = fmtDate(item.date);
-  const monthKey = item.date.slice(0,7);
-  if (monthKey !== lastMonth) {
-    const divider = document.createElement('div');
-    divider.className = 'month-divider';
-    const f = fmtDate(item.date);
-    divider.textContent = f.monthFull + " " + f.year;
-    container.appendChild(divider);
-    lastMonth = monthKey;
+/* ================= STATE ================= */
+const state = {
+  tab:'today', filter:'all', agMode:'all', kd:'holiday',
+  vm:null, sel:null, sheetKey:null, agendaScrolled:false
+};
+function clampMonth(d){
+  const lo = new Date(START.getFullYear(), START.getMonth(), 1), hi = new Date(END.getFullYear(), END.getMonth(), 1);
+  return d < lo ? lo : d > hi ? hi : d;
+}
+
+/* ================= HEADER ================= */
+function renderHeader(){
+  const el = document.getElementById('headerSub');
+  if(PHASE === 'during') el.innerHTML = `PSGIM · 2026–27 · <b>Week ${weekNo(T0)}</b> of ${TOTAL_WEEKS}`;
+  else if(PHASE === 'before') el.innerHTML = `PSGIM · 2026–27 · <b>starts ${relDays(dayDiff(T0, START))}</b>`;
+  else el.innerHTML = `PSGIM · 2026–27 · concluded`;
+}
+function renderClock(){
+  const d = now(), h = d.getHours(), m = d.getMinutes(), hh = h%12 === 0 ? 12 : h%12;
+  document.getElementById('clockT').innerHTML = `${hh}<span class="colon">:</span>${pad(m)}<small>${h>=12?'pm':'am'}</small>`;
+  document.getElementById('clockD').textContent = `${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`;
+}
+
+/* ================= TODAY: BOARD ================= */
+function nextEventAfter(key){
+  const from = BY_KEY[key] ? BY_KEY[key].i + 1 : (T0 < START ? 0 : DAYS.length);
+  for(let i = from; i < DAYS.length; i++) if(DAYS[i].text) return DAYS[i];
+  return null;
+}
+function renderBoard(){
+  const el = document.getElementById('boardHead');
+  const td = BY_KEY[TKEY];
+  const wkChip = PHASE === 'during' ? `Wk ${weekNo(T0)}` : PHASE === 'before' ? 'Pre-term' : 'Done';
+  let sc = '#FFB020', glow = '#FFB020';
+  if(td && td.cat){ sc = CATS[td.cat].color; glow = td.cat === 'holiday' ? '#FF6B6B' : td.cat === 'exam' ? '#5B8DEF' : td.cat === 'placement' ? '#A67CF0' : '#3FBFA5'; }
+  else if(td && td.wknd){ sc = 'var(--c-weekend)'; glow = '#6FBF5B'; }
+  document.getElementById('board').style.setProperty('--glow', glow);
+
+  let textLine;
+  if(td && td.text) textLine = `<div class="tk-text">${fmtText(td.text)}</div>${td.tags.length ? `<div class="tk-tags">${ctags(td.tags)}</div>` : ''}`;
+  else if(td) textLine = `<div class="tk-text dim">${td.wknd ? 'Nothing on the calendar — enjoy the weekend' : 'No events listed for today'}</div>`;
+  else textLine = `<div class="tk-text dim">${PHASE === 'before' ? `Academic year begins ${shortDate(START)}` : 'The 2026–27 academic year has concluded'}</div>`;
+
+  const left = `<div class="tk-col tk-now glow" style="--sc:${sc}">
+      <div class="tk-label"><span class="live-dot pulsing"></span>Today<span class="tk-chip">${wkChip}</span></div>
+      <button class="tk-body" ${td ? `onclick="openSheet('${TKEY}')"` : ''}>
+        <div class="tk-main">${T0.getDate()}<small>${MON[T0.getMonth()].toUpperCase()}</small></div>
+        <div class="tk-name">${DOWL[T0.getDay()]}${td && td.wknd ? ' <i>· weekend</i>' : ''}</div>
+        ${textLine}
+      </button>
+      <div class="tk-prog"><div class="bar"><i data-b="day"></i></div><div class="tk-span"><span>12am</span><span data-b="dayPct">0%</span><span>12am</span></div></div>
+    </div>`;
+
+  const nx = nextEventAfter(TKEY);
+  let right;
+  if(nx){
+    right = `<div class="tk-col tk-next glow" style="--sc:${CATS[nx.cat].color}">
+      <div class="tk-label"><span class="tk-arrow">▸</span>Next up<span class="tk-chip" data-b="nextChip"></span></div>
+      <button class="tk-body" onclick="openSheet('${nx.key}')">
+        <div class="tk-main">${nx.d.getDate()}<small>${MON[nx.d.getMonth()].toUpperCase()}</small></div>
+        <div class="tk-name">${DOWL[nx.dow]} <i>· ${relDays(dayDiff(T0, nx.d)).toLowerCase()}</i></div>
+        <div class="tk-text">${fmtText(nx.text)}</div>
+        <div class="tk-tags">${ctags(nx.tags)}</div>
+      </button>
+    </div>`;
+  } else {
+    right = `<div class="tk-col tk-next"><div class="tk-label">Next up</div><div class="tk-body"><div class="tk-main" style="color:#7A8190">—</div><div class="tk-text dim">Nothing further this year</div></div></div>`;
   }
-  const row = document.createElement('div');
-  row.className = 'row' + (item.particulars ? '' : ' empty') + (hasRealColor(item) ? ' tinted' : '');
-  row.dataset.search = (item.particulars || '').toLowerCase();
-  row.dataset.date = item.date;
-  row.dataset.cat = item.cat || '';
-  row.style.background = hasRealColor(item) ? item.color : '';
-  if (item.date === todayStr) {
-    row.classList.add('today');
-    todayRowEl = row;
+  el.innerHTML = left + right;
+  el.dataset.next = nx ? nx.key : '';
+  requestAnimationFrame(() => requestAnimationFrame(tickBoard));
+}
+function tickBoard(){
+  const el = document.getElementById('boardHead'); if(!el) return;
+  const n = now();
+  const frac = Math.min(1, Math.max(0, (n - T0) / DAY_MS));
+  const bar = el.querySelector('[data-b="day"]'); if(bar) bar.style.width = (frac*100).toFixed(2) + '%';
+  const pct = el.querySelector('[data-b="dayPct"]'); if(pct) pct.textContent = Math.floor(frac*100) + '% of day';
+  const nk = el.dataset.next;
+  if(nk){
+    const secs = (BY_KEY[nk].d - n) / 1000;
+    const chip = el.querySelector('[data-b="nextChip"]'); if(chip) chip.textContent = 'in ' + fmtDur(secs);
+    const col = el.querySelector('.tk-next'); if(col) col.classList.toggle('soon', secs <= 12*3600);
   }
-  const dotHtml = item.cat && CAT_COLORS[item.cat] ? `<span class="cat-dot" style="background:${CAT_COLORS[item.cat]}"></span>` : '';
-  row.innerHTML = `
-    <div class="datecol">
-      <div class="d">${day}</div>
-      <div class="m">${month}</div>
-      <div class="day">${item.day}</div>
+  const wd = document.querySelector('.wk-d.today'); if(wd) wd.style.setProperty('--dp', (frac*100).toFixed(1) + '%');
+}
+
+/* ================= TODAY: TICKER TAPE ================= */
+function renderTicker(){
+  const track = document.getElementById('tickerTrack');
+  const lim = new Date(T0.getTime() + 21*DAY_MS);
+  const items = RANGES.all.filter(r => r.end.d >= T0 && r.start.d <= lim).slice(0, 10).map(r => {
+    const live = r.start.d <= T0;
+    const when = live ? 'NOW' : `${DOW[r.start.dow].toUpperCase()} ${r.start.d.getDate()} ${MON[r.start.d.getMonth()].toUpperCase()}`;
+    const t = r.text.length > 70 ? r.text.slice(0, 68).trim() + '…' : r.text;
+    return `<span class="tt-item"><b>${when}</b><em>${esc(t)}</em><span class="st" style="--cc:${CATS[r.cat].color}">${CATS[r.cat].label.toUpperCase()}</span></span>`;
+  });
+  if(!items.length) items.push(`<span class="tt-item"><em>Nothing on the calendar for the next three weeks</em></span>`);
+  const reps = Math.max(1, Math.ceil(4 / items.length));
+  let seq = []; for(let r = 0; r < reps; r++) seq = seq.concat(items);
+  const half = seq.join('<span class="tt-sep">◆</span>') + '<span class="tt-sep">◆</span>';
+  track.innerHTML = half + half;
+  requestAnimationFrame(() => {
+    const w = track.scrollWidth / 2;
+    if(w > 0) track.style.animationDuration = Math.max(18, w / 40).toFixed(1) + 's';
+  });
+}
+
+/* ================= TODAY: COUNTDOWNS ================= */
+const CD = {};
+function renderCountdowns(){
+  const el = document.getElementById('cdRow');
+  el.innerHTML = ['holiday','exam'].map(kind => {
+    const list = RANGES[kind];
+    const nx = list.find(r => r.end.d >= T0);
+    const title = kind === 'holiday' ? 'Next holiday' : 'Next exam';
+    if(!nx){
+      CD[kind] = null;
+      return `<div class="cd-tile none" style="--cc:${CATS[kind].color}"><div class="cd-k"><span class="cd-dot"></span>${title}</div>
+        <div class="cd-big"><b>—</b></div><div class="cd-l">None left this year</div></div>`;
+    }
+    const prev = [...list].reverse().find(r => r.end.d < T0);
+    const from = prev ? new Date(prev.end.d.getTime() + DAY_MS) : START;
+    CD[kind] = {nx, from};
+    const seg = keySegment(nx.text, kind);
+    const label = kind === 'holiday' ? cleanHoliday(seg) : seg;
+    return `<button class="cd-tile" id="cd-${kind}" style="--cc:${CATS[kind].color}" onclick="openSheet('${nx.start.key}')">
+      <div class="cd-k"><span class="cd-dot"></span>${title}</div>
+      <div class="cd-big"><b data-cd="d">0</b><small data-cd="u">days</small></div>
+      <div class="cd-hms" data-cd="hms"></div>
+      <div class="cd-l">${esc(label)}</div>
+      <div class="cd-date">${rangeLabel(nx)}</div>
+      <div class="bar-wrap"><div class="bar"><i data-cd="bar"></i></div></div>
+    </button>`;
+  }).join('');
+  ['holiday','exam'].forEach(kind => {
+    const c = CD[kind]; if(!c) return;
+    const tile = document.getElementById('cd-' + kind);
+    const live = c.nx.start.d <= T0;
+    tile.classList.toggle('live', live);
+    const big = tile.querySelector('[data-cd="d"]');
+    if(live){ big.textContent = c.nx.days > 1 ? 'On' : 'Today'; tile.querySelector('[data-cd="u"]').textContent = c.nx.days > 1 ? `till ${shortDate(c.nx.end.d)}` : ''; }
+    else countUp(big, dayDiff(T0, c.nx.start.d), {dur:1100});
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const total = c.nx.start.d - c.from, done = now() - c.from;
+      tile.querySelector('[data-cd="bar"]').style.width = live ? '100%' : Math.min(100, Math.max(2, done/total*100)).toFixed(1) + '%';
+    }));
+  });
+  tickCountdowns();
+}
+function tickCountdowns(){
+  ['holiday','exam'].forEach(kind => {
+    const c = CD[kind]; if(!c) return;
+    const tile = document.getElementById('cd-' + kind); if(!tile) return;
+    const hms = tile.querySelector('[data-cd="hms"]');
+    if(c.nx.start.d <= T0){ setRoll(hms, kind === 'holiday' ? 'ENJOY\u00a0THE\u00a0BREAK' : 'ALL\u00a0THE\u00a0BEST'); return; }
+    const secs = Math.max(0, Math.floor((c.nx.start.d - now()) / 1000));
+    const h = Math.floor(secs % 86400 / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    setRoll(hms, `${pad(h)}h\u00a0${pad(m)}m\u00a0${pad(s)}s`);
+  });
+}
+
+/* ================= TODAY: WEEK STRIP ================= */
+function renderWeek(){
+  const el = document.getElementById('weekCard');
+  let anchor = T0 < START ? START : T0 > END ? END : T0;
+  const mon = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - ((anchor.getDay() + 6) % 7));
+  const sun = new Date(mon.getTime() + 6*DAY_MS);
+  let evCount = 0, html = '';
+  for(let i = 0; i < 7; i++){
+    const d = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i), k = dkey(d), x = BY_KEY[k];
+    const isToday = k === TKEY, past = d < T0;
+    if(x && x.text) evCount++;
+    const cls = ['wk-d', x && x.wknd ? 'we' : '', x && (x.shade === 3 || x.tags.includes('holiday')) ? 'hol' : '', isToday ? 'today' : '', past ? 'past' : ''].join(' ');
+    const dots = x ? x.tags.map(t => `<i style="--cc:${CATS[t].color}"></i>`).join('') : '';
+    html += `<button class="${cls}" style="--i:${i}" ${x ? `onclick="openSheet('${k}')"` : 'disabled'}>
+      <span class="dn">${DOW[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dots">${dots}</span></button>`;
+  }
+  const label = mon.getMonth() === sun.getMonth() ? `${mon.getDate()}–${sun.getDate()} ${MON[mon.getMonth()]}` : `${mon.getDate()} ${MON[mon.getMonth()]} – ${sun.getDate()} ${MON[sun.getMonth()]}`;
+  el.innerHTML = `<div class="card-h"><div class="t">This week</div><div class="m">${label}</div></div>
+    <div class="wk">${html}</div>
+    <div class="wk-foot"><span><b>${evCount}</b> of 7 days with events</span><span>Tap a day for details</span></div>`;
+}
+
+/* ================= TODAY: YEAR PROGRESS ================= */
+function renderYear(){
+  const el = document.getElementById('yearCard');
+  const span = END - START + DAY_MS;
+  const pct = PHASE === 'before' ? 0 : PHASE === 'after' ? 100 : Math.min(100, (now() - START) / span * 100);
+  const dayN = PHASE === 'during' ? BY_KEY[TKEY].i + 1 : PHASE === 'after' ? DAYS.length : 0;
+  const future = DAYS.filter(x => x.d >= T0);
+  const working = future.filter(x => !x.wknd && !x.tags.includes('holiday') && x.shade !== 3).length;
+  const hols = RANGES.holiday.filter(r => r.end.d >= T0).length;
+  const exams = future.filter(x => x.tags.includes('exam')).length;
+  let months = '', ticks = '';
+  for(let m = new Date(START.getFullYear(), START.getMonth(), 1); m <= END; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)){
+    const mid = new Date(m.getFullYear(), m.getMonth(), 15);
+    const pos = Math.max(2, Math.min(98, (mid - START) / span * 100));
+    const cur = m.getMonth() === T0.getMonth() && m.getFullYear() === T0.getFullYear();
+    months += `<span class="${cur ? 'cur' : ''}" style="left:${pos}%">${MON[m.getMonth()][0]}</span>`;
+    if(m > START) ticks += `<span class="yr-tick" style="left:${(m - START) / span * 100}%"></span>`;
+  }
+  const holDots = RANGES.holiday.map(r => `<span class="yr-hol ${r.end.d < T0 ? 'done' : ''}" style="left:${(r.start.d - START + DAY_MS/2) / span * 100}%"></span>`).join('');
+  const status = PHASE === 'during' ? `Day ${dayN} of ${DAYS.length} · ${DAYS.length - dayN} days to go` : PHASE === 'before' ? `Starts ${shortDate(START)}` : `Ended ${shortDate(END)}`;
+  el.innerHTML = `<div class="yr-top">
+      <div><div class="t1">Academic year</div><div class="t2">${status}</div></div>
+      <div class="pct"><span id="yrPct">0</span><small>%</small></div>
     </div>
-    <div class="particulars">${dotHtml}<span>${item.particulars ? item.particulars.replace(/\n/g,'<br>') : 'No events listed'}</span></div>
-  `;
-  container.appendChild(row);
-});
-
-const todayData = dataByDate[todayStr];
-const now = new Date();
-const dayNameFull = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][now.getDay()];
-document.getElementById('todayDate').textContent = dayNameFull;
-document.getElementById('todayEvent').textContent = todayData ? (todayData.particulars || "No events listed for today.") : "Today falls outside the calendar range.";
-document.getElementById('tbDay').textContent = now.getDate();
-document.getElementById('tbMon').textContent = MONTHS[now.getMonth()].slice(0,3);
-
-function jumpToToday() {
-  vibrate(8);
-  updateStickyOffsets();
-  if (currentView === 'list') {
-    if (todayRowEl) todayRowEl.scrollIntoView({behavior: 'smooth', block: 'start'});
-  } else {
-    currentMonthKey = todayStr.slice(0,7);
-    renderMonth();
-    selectDay(todayStr);
-    window.scrollTo({top:0, behavior:'smooth'});
-  }
-}
-function scrollToTopBottom(dir) {
-  vibrate(6);
-  window.scrollTo({top: dir === 'top' ? 0 : document.body.scrollHeight, behavior: 'smooth'});
+    <div class="yr-bar">${ticks}${holDots}<div class="yr-fill" id="yrFill"></div><span class="yr-knob" id="yrKnob"></span></div>
+    <div class="yr-months">${months}</div>
+    <div class="stats">
+      <div class="stat"><b data-n="${working}">0</b><span>Working days left</span></div>
+      <div class="stat" style="--cc:var(--c-holiday)"><b data-n="${hols}">0</b><span>Holidays to come</span></div>
+      <div class="stat" style="--cc:var(--c-exam)"><b data-n="${exams}">0</b><span>Exam days ahead</span></div>
+    </div>`;
+  countUp(document.getElementById('yrPct'), Math.round(pct), {dur:1400});
+  el.querySelectorAll('[data-n]').forEach(b => countUp(b, +b.dataset.n, {dur:1100}));
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('yrFill').style.width = pct + '%';
+    document.getElementById('yrKnob').style.left = pct + '%';
+  }));
 }
 
-function applyFilters() {
-  const q = document.getElementById('searchBox').value.toLowerCase();
-  const rows = Array.from(document.querySelectorAll('.row'));
-  rows.forEach(r => {
-    const matchQ = !q || r.dataset.search.includes(q) || r.dataset.date.includes(q);
-    const matchCat = currentCategory === 'all' || r.dataset.cat === currentCategory;
-    r.style.display = (matchQ && matchCat) ? 'flex' : 'none';
-  });
-  // Hide any month divider that has zero visible rows before the next divider
-  const nodes = Array.from(container.children);
-  nodes.forEach((node, i) => {
-    if (!node.classList.contains('month-divider')) return;
-    let hasVisible = false;
-    for (let j = i+1; j < nodes.length; j++) {
-      if (nodes[j].classList.contains('month-divider')) break;
-      if (nodes[j].classList.contains('row') && nodes[j].style.display !== 'none') { hasVisible = true; break; }
+/* ================= TODAY: COMING UP ================= */
+function renderUpcoming(){
+  const el = document.getElementById('upcoming');
+  const lim = new Date(T0.getTime() + 30*DAY_MS);
+  const list = RANGES.all.filter(r => r.start.d > T0 && r.start.d <= lim).slice(0, 8);
+  document.getElementById('upN').textContent = list.length ? 'next 30 days' : '';
+  if(!list.length){ el.innerHTML = `<div class="empty-note">Nothing on the calendar in the next 30 days.</div>`; return; }
+  el.innerHTML = list.map((r, i) => {
+    const diff = dayDiff(T0, r.start.d);
+    const cls = i === 0 ? 'next' : diff <= 7 ? 'soon' : '';
+    return `<button class="tl-item ${cls}" style="--cc:${CATS[r.cat].color}; --i:${i + 4}" onclick="openSheet('${r.start.key}')">
+      <span class="tl-node"></span>
+      <div class="tl-date"><b>${r.start.d.getDate()}${r.days > 1 ? `<small>–${r.end.d.getDate()}</small>` : ''}</b><span>${MON[r.start.d.getMonth()]} · ${DOW[r.start.dow]}</span></div>
+      <div class="tl-body"><div class="tl-label">${fmtText(r.text)}</div>
+        <div class="tl-when">${relDays(diff)}${r.days > 1 ? ` · ${r.days} days` : ''}${ctags(r.tags)}</div></div>
+    </button>`;
+  }).join('');
+}
+
+/* ================= MONTH ================= */
+function legendHTML(target){
+  const counts = {}; CAT_KEYS.forEach(c => counts[c] = DAYS.filter(x => x.tags.includes(c)).length);
+  return `<button class="chip all ${state.filter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All</button>` +
+    CAT_KEYS.map(c => `<button class="chip ${state.filter === c ? 'active' : ''}" style="--cc:${CATS[c].color}" onclick="setFilter('${c}')"><span class="sw"></span>${CATS[c].label}${target === 'a' ? `<em>${counts[c]}</em>` : ''}</button>`).join('');
+}
+function renderLegends(){
+  document.getElementById('mLegend').innerHTML = legendHTML('m');
+  document.getElementById('aLegend').innerHTML = legendHTML('a');
+}
+function setFilter(c){
+  state.filter = (c !== 'all' && state.filter === c) ? 'all' : c;
+  vib();
+  renderLegends();
+  renderMonthGrid(null, true);
+  renderMonthList();
+  renderAgenda();
+}
+
+function monthBounds(){
+  const lo = new Date(START.getFullYear(), START.getMonth(), 1), hi = new Date(END.getFullYear(), END.getMonth(), 1);
+  return {lo, hi};
+}
+function renderMonth(dir){
+  renderMonthHead(dir);
+  renderMonthGrid(dir);
+  renderDetail(false);
+  renderMonthList();
+}
+function renderMonthHead(dir){
+  const vm = state.vm, y = vm.getFullYear(), m = vm.getMonth();
+  const inM = DAYS.filter(x => x.d.getMonth() === m && x.d.getFullYear() === y);
+  const ev = inM.filter(x => x.text).length, ho = inM.filter(x => x.tags.includes('holiday')).length, ex = inM.filter(x => x.tags.includes('exam')).length;
+  const t = document.getElementById('mTitle');
+  t.innerHTML = `<div class="mt">${MONTHS[m]} <span>${y}</span></div>
+    <div class="ms"><b>${ev}</b> event days · <b>${ho}</b> holiday${ho === 1 ? '' : 's'} · <b>${ex}</b> exam day${ex === 1 ? '' : 's'}</div>`;
+  t.classList.remove('swap'); void t.offsetWidth; if(dir) t.classList.add('swap');
+  const {lo, hi} = monthBounds();
+  document.getElementById('mPrev').disabled = vm <= lo;
+  document.getElementById('mNext').disabled = vm >= hi;
+  const isCur = T0.getMonth() === m && T0.getFullYear() === y;
+  document.getElementById('mToday').innerHTML = (!isCur && PHASE === 'during') ? `<button class="pill-btn" onclick="monthToToday()"><span class="live-dot"></span>Back to ${MON[T0.getMonth()]}</button>` : '';
+  // month position dots
+  let dots = '', i = 0;
+  for(let d = new Date(lo); d <= hi; d = new Date(d.getFullYear(), d.getMonth() + 1, 1), i++) dots += `<i class="${d.getTime() === vm.getTime() ? 'on' : ''}"></i>`;
+  document.getElementById('calDots').innerHTML = dots;
+}
+function renderMonthGrid(dir, quiet){
+  const vm = state.vm, y = vm.getFullYear(), m = vm.getMonth();
+  const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+  const dim = new Date(y, m + 1, 0).getDate();
+  const total = Math.ceil((lead + dim) / 7) * 7;
+  let html = '';
+  for(let i = 0; i < total; i++){
+    const d = new Date(y, m, 1 - lead + i), k = dkey(d), x = BY_KEY[k];
+    const other = d.getMonth() !== m;
+    const cls = ['cell'];
+    if(other) cls.push('other');
+    else if(!x) cls.push('nodata');
+    if(x){
+      if(x.shade === 3 || x.tags.includes('holiday')) cls.push('hol');
+      else if(x.shade === 2) cls.push('we2');
+      else if(x.shade === 1 || x.wknd) cls.push('we');
+      if(d < T0) cls.push('past');
+      if(state.filter !== 'all' && !x.tags.includes(state.filter)) cls.push('dim');
     }
-    node.style.display = hasVisible ? 'flex' : 'none';
-  });
-  renderMonth();
-}
-
-function setCategory(cat) {
-  currentCategory = cat;
-  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
-  applyFilters();
-}
-
-/* ---------------- MONTH VIEW ---------------- */
-const allMonthKeys = [...new Set(DATA.map(d => d.date.slice(0,7)))].sort();
-let currentMonthKey = allMonthKeys.includes(todayStr.slice(0,7)) ? todayStr.slice(0,7) : allMonthKeys[0];
-let selectedDate = null;
-
-function changeMonth(delta) {
-  const idx = allMonthKeys.indexOf(currentMonthKey);
-  const newIdx = idx + delta;
-  if (newIdx >= 0 && newIdx < allMonthKeys.length) {
-    currentMonthKey = allMonthKeys[newIdx];
-    vibrate(6);
-    renderMonth();
+    if(k === TKEY && !other) cls.push('today');
+    if(k === state.sel && !other) cls.push('sel');
+    const dots = x && !other ? x.tags.map(t => `<i style="--cc:${CATS[t].color}"></i>`).join('') : '';
+    html += `<button class="${cls.join(' ')}" style="--i:${quiet ? 0 : i}" data-k="${k}" ${x && !other ? '' : 'tabindex="-1"'} aria-label="${shortDate(d)}${x && x.text ? ': ' + esc(x.text) : ''}">
+      <span class="cn">${d.getDate()}</span><span class="cd">${dots}</span></button>`;
   }
+  const g = document.getElementById('calGrid');
+  g.style.transition = 'none'; g.style.transform = ''; g.style.opacity = '';
+  g.innerHTML = html;
+  g.classList.remove('in-next', 'in-prev');
+  if(quiet) g.querySelectorAll('.cell').forEach(c => c.style.animation = 'none');
+  if(dir){ void g.offsetWidth; g.classList.add(dir > 0 ? 'in-next' : 'in-prev'); }
 }
-
-function renderMonth() {
-  if (currentView !== 'month') return;
-  const [y, m] = currentMonthKey.split('-').map(Number);
-  document.getElementById('monthLabel').textContent = MONTHS[m-1] + " " + y;
-  const grid = document.getElementById('monthGrid');
-  grid.innerHTML = '';
-
-  const firstDate = new Date(y, m-1, 1);
-  let startOffset = firstDate.getDay() - 1;
-  if (startOffset < 0) startOffset = 6;
-  const daysInMonth = new Date(y, m, 0).getDate();
-
-  for (let i = 0; i < startOffset; i++) {
-    const blank = document.createElement('div');
-    blank.className = 'cell blank';
-    grid.appendChild(blank);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const iso = y + "-" + String(m).padStart(2,'0') + "-" + String(d).padStart(2,'0');
-    const item = dataByDate[iso];
-    const hasEvent = !!(item && item.particulars);
-    const cell = document.createElement('div');
-    let cls = 'cell' + (hasEvent ? ' has-event' : '') + (hasRealColor(item) ? ' tinted' : '');
-    if (iso === todayStr) cls += ' today';
-    if (iso === selectedDate) cls += ' selected';
-    if (currentCategory !== 'all' && (!item || item.cat !== currentCategory)) cls += ' dim';
-    cell.className = cls;
-    cell.dataset.date = iso;
-    if (hasRealColor(item)) cell.style.background = item.color;
-    cell.innerHTML = `<div class="num">${d}</div>` + (hasEvent ? `<div class="bar" style="${item.cat && CAT_COLORS[item.cat] ? 'background:'+CAT_COLORS[item.cat]+';opacity:0.85' : ''}"></div>` : '');
-    cell.onclick = () => selectDay(iso);
-    grid.appendChild(cell);
-  }
+function selectDay(k){
+  if(!BY_KEY[k]) return;
+  state.sel = k; vib(5);
+  document.querySelectorAll('#calGrid .cell.sel').forEach(c => c.classList.remove('sel'));
+  const c = document.querySelector(`#calGrid .cell[data-k="${k}"]`); if(c) c.classList.add('sel');
+  renderDetail(true);
+  document.querySelectorAll('#mList .ml-row').forEach(r => r.classList.toggle('sel', r.dataset.k === k));
 }
-
-function selectDay(iso) {
-  selectedDate = iso;
-  renderMonth();
-  const item = dataByDate[iso];
-  const f = fmtDate(iso);
-  const detail = document.getElementById('dayDetail');
-  if (item) {
-    detail.innerHTML = `<div class="dd-date">${f.day} ${f.monthFull} ${f.year} &middot; ${item.day}</div>` +
-      (item.particulars ? item.particulars.replace(/\n/g,'<br>') : '<span class="dd-empty">No events listed.</span>');
-  } else {
-    detail.innerHTML = `<div class="dd-date">${f.day} ${f.monthFull} ${f.year}</div><span class="dd-empty">Outside calendar range.</span>`;
-  }
+function renderDetail(anim){
+  const el = document.getElementById('detail');
+  const x = BY_KEY[state.sel];
+  if(!x){ el.style.display = 'none'; return; }
+  el.style.display = '';
+  const diff = dayDiff(T0, x.d);
+  const sc = x.cat ? CATS[x.cat].color : x.wknd ? 'var(--c-weekend)' : 'var(--line-strong)';
+  el.style.setProperty('--sc', sc);
+  el.innerHTML = `<div class="dt-in">
+    <div class="dt-head">
+      <div class="dt-date"><b>${x.d.getDate()}</b><span>${MON[x.d.getMonth()].toUpperCase()}</span></div>
+      <div class="dt-t"><div class="a">${DOWL[x.dow]}</div><div class="b ${diff >= 0 && diff <= 7 ? 'hot' : ''}">${relDays(diff)}${x.wknd ? ' · weekend' : ''}</div></div>
+      <button class="dt-share" onclick="shareDay('${x.key}')" aria-label="Share this day"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12"/></svg></button>
+    </div>
+    <div class="dt-text ${x.text ? '' : 'dim'}">${x.text ? fmtText(x.text) : (x.wknd ? 'Weekend — nothing on the calendar.' : 'No events listed.')}</div>
+    ${x.tags.length ? `<div class="dt-tags">${ctags(x.tags)}</div>` : ''}
+  </div>`;
+  el.classList.remove('swap'); if(anim){ void el.offsetWidth; el.classList.add('swap'); }
 }
-
-/* ---- Swipe gestures for month view ---- */
-(function setupSwipe() {
-  const grid = document.getElementById('monthGrid');
-  let startX = 0, startY = 0, tracking = false;
-  grid.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    tracking = true;
-  }, {passive: true});
-  grid.addEventListener('touchend', e => {
-    if (!tracking) return;
-    tracking = false;
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      changeMonth(dx < 0 ? 1 : -1);
+function renderMonthList(){
+  const vm = state.vm, y = vm.getFullYear(), m = vm.getMonth();
+  let list = DAYS.filter(x => x.text && x.d.getMonth() === m && x.d.getFullYear() === y);
+  if(state.filter !== 'all') list = list.filter(x => x.tags.includes(state.filter));
+  document.getElementById('mlTitle').innerHTML = `In ${MONTHS[m]} <span class="n">${list.length} day${list.length === 1 ? '' : 's'}</span>`;
+  document.getElementById('mList').innerHTML = list.length ? `<div class="mlist">${list.map(x =>
+    `<button class="ml-row ${x.key === state.sel ? 'sel' : ''} ${x.d < T0 ? 'past' : ''}" data-k="${x.key}" style="--cc:${CATS[x.cat].color}" onclick="openSheet('${x.key}')">
+      <div class="ml-d"><b>${x.d.getDate()}</b><span>${DOW[x.dow]}</span></div><div class="ml-t">${fmtText(x.text)}</div></button>`).join('')}</div>`
+    : `<div class="empty-note">${state.filter === 'all' ? 'Nothing listed this month.' : `No ${CATS[state.filter].label.toLowerCase()} days this month.`}</div>`;
+}
+let monthBusy = false;
+function shiftMonth(n){
+  const {lo, hi} = monthBounds();
+  const nv = new Date(state.vm.getFullYear(), state.vm.getMonth() + n, 1);
+  if(nv < lo || nv > hi || monthBusy) return false;
+  vib();
+  state.vm = nv;
+  const isCur = T0.getMonth() === nv.getMonth() && T0.getFullYear() === nv.getFullYear();
+  const firstEv = DAYS.find(x => x.d.getMonth() === nv.getMonth() && x.d.getFullYear() === nv.getFullYear() && x.text)
+               || DAYS.find(x => x.d.getMonth() === nv.getMonth() && x.d.getFullYear() === nv.getFullYear());
+  state.sel = isCur && BY_KEY[TKEY] ? TKEY : (firstEv ? firstEv.key : null);
+  renderMonth(n);
+  return true;
+}
+function monthToToday(){
+  const target = clampMonth(new Date(T0.getFullYear(), T0.getMonth(), 1));
+  const dir = target > state.vm ? 1 : -1;
+  state.vm = target; state.sel = BY_KEY[TKEY] ? TKEY : state.sel;
+  renderMonth(dir); vib();
+}
+/* Swipe: the grid follows the finger, then flips to the next month. */
+(function(){
+  const vp = document.getElementById('calVp'), g = document.getElementById('calGrid');
+  let sx = 0, sy = 0, dx = 0, lock = null, moved = false;
+  vp.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; lock = null; moved = false; g.style.transition = 'none'; }, {passive:true});
+  vp.addEventListener('touchmove', e => {
+    const x = e.touches[0].clientX - sx, y = e.touches[0].clientY - sy;
+    if(lock === null && (Math.abs(x) > 8 || Math.abs(y) > 8)) lock = Math.abs(x) > Math.abs(y) ? 'x' : 'y';
+    if(lock !== 'x') return;
+    e.preventDefault(); moved = true; dx = x;
+    const {lo, hi} = monthBounds();
+    const edge = (dx > 0 && state.vm <= lo) || (dx < 0 && state.vm >= hi);
+    const tx = edge ? dx * 0.25 : dx;
+    g.style.transform = `translateX(${tx}px) rotate(${tx / 60}deg)`; g.style.opacity = String(1 - Math.min(.6, Math.abs(tx) / 500));
+  }, {passive:false});
+  vp.addEventListener('touchend', () => {
+    if(lock !== 'x') return;
+    const dir = dx < 0 ? 1 : -1;
+    g.style.transition = 'transform .22s ease, opacity .22s ease';
+    if(Math.abs(dx) > 55){
+      const {lo, hi} = monthBounds();
+      const nv = new Date(state.vm.getFullYear(), state.vm.getMonth() + dir, 1);
+      if(nv >= lo && nv <= hi){
+        monthBusy = true;
+        g.style.transform = `translateX(${dir > 0 ? -110 : 110}%)`; g.style.opacity = '0';
+        setTimeout(() => { monthBusy = false; shiftMonth(dir); }, 190);
+        return;
+      }
     }
-  }, {passive: true});
+    g.style.transform = ''; g.style.opacity = '';
+  });
+  vp.addEventListener('click', e => {
+    if(moved){ moved = false; return; }
+    const c = e.target.closest('.cell'); if(!c || c.classList.contains('other') || c.classList.contains('nodata')) return;
+    if(state.sel === c.dataset.k){ openSheet(c.dataset.k); return; }
+    selectDay(c.dataset.k);
+  });
+  document.addEventListener('keydown', e => {
+    if(state.tab !== 'month' || document.getElementById('sheetOverlay').classList.contains('open')) return;
+    if(e.key === 'ArrowLeft') shiftMonth(-1);
+    if(e.key === 'ArrowRight') shiftMonth(1);
+  });
 })();
 
-function switchTab(view) {
-  currentView = view;
-  document.getElementById('tabList').classList.toggle('active', view==='list');
-  document.getElementById('tabMonth').classList.toggle('active', view==='month');
-  document.getElementById('listContainer').style.display = view==='list' ? 'block' : 'none';
-  document.getElementById('searchWrap').style.display = view==='list' ? 'block' : 'none';
-  document.getElementById('monthView').style.display = view==='month' ? 'block' : 'none';
-  document.getElementById('fabTop').style.display = view==='list' ? 'flex' : 'none';
-  document.getElementById('fabBottom').style.display = view==='list' ? 'flex' : 'none';
-  vibrate(6);
-  if (view === 'month') {
-    renderMonth();
-    selectDay(selectedDate || todayStr);
+/* ================= AGENDA ================= */
+let revealObs = null, todayObs = null;
+function onSearch(){
+  document.getElementById('qClear').classList.toggle('show', !!document.getElementById('q').value);
+  renderAgenda();
+}
+function clearSearch(){ const q = document.getElementById('q'); q.value = ''; onSearch(); q.focus(); }
+function setAgMode(m){
+  state.agMode = m; vib();
+  const seg = document.getElementById('agSeg');
+  seg.style.setProperty('--k', m === 'all' ? 0 : 1);
+  seg.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', (i === 0) === (m === 'all')));
+  renderAgenda();
+}
+function renderAgenda(){
+  const el = document.getElementById('agenda');
+  const q = (document.getElementById('q').value || '').trim();
+  const ql = q.toLowerCase();
+  let list = DAYS.filter(x => {
+    if(state.filter !== 'all' && !x.tags.includes(state.filter)) return false;
+    if(ql) return x.text.toLowerCase().includes(ql) || shortDate(x.d).toLowerCase().includes(ql) || MONTHS[x.d.getMonth()].toLowerCase().includes(ql);
+    if(state.agMode === 'events') return !!x.text || x.key === TKEY;
+    return true;
+  });
+  const evDays = list.filter(x => x.text).length;
+  document.getElementById('agCount').textContent = (ql || state.filter !== 'all') ? `${list.length} match${list.length === 1 ? '' : 'es'}` : `${evDays} event days`;
+  if(!list.length){
+    el.innerHTML = `<div class="empty-note">No days match ${q ? `“${esc(q)}”` : 'this filter'}.<br>Try “exam”, “holiday”, “viva” or a month name.</div>`;
+    hookAgendaObservers(); return;
   }
-  requestAnimationFrame(updateStickyOffsets);
+  let html = '', curM = -1, open = false, todayLinePlaced = false;
+  const monthCount = {};
+  list.forEach(x => { const mk = x.d.getFullYear()*12 + x.d.getMonth(); monthCount[mk] = (monthCount[mk] || 0) + (x.text ? 1 : 0); });
+  list.forEach(x => {
+    const mk = x.d.getFullYear()*12 + x.d.getMonth();
+    if(mk !== curM){
+      if(open) html += `</div>`;
+      html += `<div class="ag-month"><div class="t">${MONTHS[x.d.getMonth()]} <span>${x.d.getFullYear()}</span></div><div class="n">${monthCount[mk]} event day${monthCount[mk] === 1 ? '' : 's'}</div></div><div class="ag-list">`;
+      curM = mk; open = true;
+    }
+    if(!todayLinePlaced && !q && x.d >= T0 && x.key !== TKEY && PHASE === 'during'){
+      html += `<div class="ag-today-line">TODAY · ${shortDate(T0).toUpperCase()}</div>`; todayLinePlaced = true;
+    }
+    if(x.key === TKEY) todayLinePlaced = true;
+    const isToday = x.key === TKEY, past = x.d < T0;
+    const cls = ['ag-row', 'rv', x.text ? '' : 'empty',
+      x.shade === 3 || x.tags.includes('holiday') ? 'hol' : x.shade === 2 ? 'we2' : (x.shade === 1 || x.wknd) ? 'we' : '',
+      isToday ? 'today' : '', past ? 'past' : ''].join(' ');
+    const body = x.text ? `<span class="cdot" style="--cc:${CATS[x.cat].color}"></span>${fmtText(x.text, q)}` : (x.wknd ? 'Weekend' : 'No events');
+    html += `<button class="${cls}" data-k="${x.key}" onclick="openSheet('${x.key}')">
+      <div class="ag-d"><b>${x.d.getDate()}</b><span>${DOW[x.dow]}</span></div>
+      <div class="ag-b"><div class="ag-t">${body}</div></div>
+      ${isToday ? '<span class="tag now">TODAY</span>' : ''}</button>`;
+  });
+  if(open) html += `</div>`;
+  el.innerHTML = html;
+  hookAgendaObservers();
+}
+function hookAgendaObservers(){
+  const rows = document.querySelectorAll('#agenda .ag-row.rv');
+  if(!('IntersectionObserver' in window)){ rows.forEach(r => r.classList.add('in')); return; }
+  if(revealObs) revealObs.disconnect();
+  revealObs = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); revealObs.unobserve(e.target); } }), {rootMargin:'0px 0px -20px 0px'});
+  rows.forEach(r => revealObs.observe(r));
+  if(todayObs) todayObs.disconnect();
+  const fab = document.getElementById('jumpFab');
+  const tr = document.querySelector('#agenda .ag-row.today');
+  if(!tr){ fab.classList.remove('show'); return; }
+  todayObs = new IntersectionObserver(es => es.forEach(e => {
+    const show = !e.isIntersecting && state.tab === 'agenda';
+    fab.classList.toggle('show', show);
+    fab.classList.toggle('up', e.boundingClientRect.top < 0);
+  }));
+  todayObs.observe(tr);
+}
+function agendaToToday(smooth){
+  const tr = document.querySelector('#agenda .ag-row.today');
+  if(!tr) return;
+  vib();
+  tr.classList.add('in');
+  const y = tr.getBoundingClientRect().top + window.scrollY - window.innerHeight / 2 + tr.offsetHeight / 2;
+  window.scrollTo({top:Math.max(0, y), behavior:smooth ? 'smooth' : 'instant'});
 }
 
-/* ---------------- STICKY OFFSET MEASUREMENT ----------------
-   The header/search/legend stack height changes with content
-   (theme swap, font load, view switch), so measure it for real
-   instead of hardcoding pixel guesses that drift out of sync. */
-function updateStickyOffsets() {
-  const header = document.getElementById('pageHeader');
-  const searchWrap = document.getElementById('searchWrap');
-  const legendWrap = document.getElementById('legendWrap');
-  if (!header || !searchWrap || !legendWrap) return;
-
-  const headerH = header.offsetHeight;
-  const searchVisible = searchWrap.style.display !== 'none';
-  const searchH = searchVisible ? searchWrap.offsetHeight : 0;
-
-  document.documentElement.style.setProperty('--header-h', headerH + 'px');
-  document.documentElement.style.setProperty('--legend-top', (headerH + searchH) + 'px');
-
-  const legendH = legendWrap.offsetHeight;
-  const totalSticky = headerH + searchH + legendH + 10; // small breathing gap
-  document.documentElement.style.setProperty('--sticky-total', totalSticky + 'px');
+/* ================= KEY DATES ================= */
+function setKd(k){
+  state.kd = k; vib();
+  const seg = document.getElementById('kdSeg');
+  const idx = ['holiday','exam','placement'].indexOf(k);
+  seg.style.setProperty('--k', idx);
+  seg.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', i === idx));
+  renderKdList();
+}
+function renderKdCard(){
+  const el = document.getElementById('kdCard');
+  const h = RANGES.holiday, e = RANGES.exam, p = RANGES.placement;
+  const left = list => list.filter(r => r.end.d >= T0).length;
+  el.innerHTML = `<div class="card-h"><div class="t">Key dates</div><div class="m">${shortDate(START)} – ${shortDate(END)}</div></div>
+    <div class="stats" style="margin-top:0">
+      <div class="stat" style="--cc:var(--c-holiday)"><b data-n="${left(h)}">0</b><span>of ${h.length} holidays left</span></div>
+      <div class="stat" style="--cc:var(--c-exam)"><b data-n="${left(e)}">0</b><span>of ${e.length} exam spells left</span></div>
+      <div class="stat" style="--cc:var(--c-placement)"><b data-n="${left(p)}">0</b><span>of ${p.length} placement items</span></div>
+    </div>`;
+  el.querySelectorAll('[data-n]').forEach(b => countUp(b, +b.dataset.n));
+}
+function renderKdList(){
+  const el = document.getElementById('kdList');
+  const list = RANGES[state.kd];
+  const nextIdx = list.findIndex(r => r.start.d > T0);
+  let html = '<div class="tl">', curM = -1, todayPlaced = false;
+  list.forEach((r, i) => {
+    const mk = r.start.d.getFullYear()*12 + r.start.d.getMonth();
+    if(!todayPlaced && r.end.d >= T0 && PHASE === 'during'){
+      todayPlaced = true;
+      if(i > 0) html += `<div class="tl-today" id="kdToday">TODAY · ${shortDate(T0).toUpperCase()}</div>`;
+    }
+    if(mk !== curM){ html += `<div class="tl-month">${MONTHS[r.start.d.getMonth()]} ${r.start.d.getFullYear()}</div>`; curM = mk; }
+    const live = r.start.d <= T0 && r.end.d >= T0;
+    const diff = dayDiff(T0, r.start.d);
+    const cls = r.end.d < T0 ? 'done' : live ? 'live' : i === nextIdx ? 'next' : diff <= 14 ? 'soon' : '';
+    const when = live ? (r.days > 1 ? `On now · till ${shortDate(r.end.d)}` : 'Today') : r.end.d < T0 ? relDays(dayDiff(T0, r.end.d)) : relDays(diff);
+    const label = state.kd === 'holiday' ? cleanHoliday(keySegment(r.text, 'holiday')) : r.text;
+    const weekendNote = state.kd === 'holiday' && r.days === 1 && r.start.wknd ? ' · falls on a weekend' : '';
+    html += `<button class="tl-item ${cls}" style="--cc:${CATS[state.kd].color}; --i:${Math.min(i, 12)}" onclick="openSheet('${r.start.key}')">
+      <span class="tl-node"></span>
+      <div class="tl-date"><b>${r.start.d.getDate()}${r.days > 1 ? `<small>–${r.end.d.getDate()}</small>` : ''}</b><span>${DOW[r.start.dow]}${r.days > 1 ? '–' + DOW[r.end.dow] : ''}</span></div>
+      <div class="tl-body"><div class="tl-label">${fmtText(label)}</div><div class="tl-when">${when}${r.days > 1 ? ` · ${r.days} days` : ''}${weekendNote}</div></div>
+    </button>`;
+  });
+  html += '</div>';
+  el.innerHTML = list.length ? html : `<div class="empty-note">Nothing listed.</div>`;
+}
+function renderNavBadge(){
+  const b = document.getElementById('navBadge');
+  const nx = RANGES.holiday.find(r => r.start.d >= T0);
+  const d = nx ? dayDiff(T0, nx.start.d) : null;
+  if(d !== null && d <= 7){ b.style.display = 'flex'; b.textContent = d === 0 ? '!' : d; b.title = `Holiday ${relDays(d)}`; }
+  else b.style.display = 'none';
 }
 
-window.addEventListener('resize', () => requestAnimationFrame(updateStickyOffsets));
-
-/* ---------------- AUTO-REFRESH ON DATE CHANGE ----------------
-   If the app was left open in the background overnight (common with
-   installed PWAs that get suspended rather than fully closed), the page
-   never re-runs its "what is today" logic until something reloads it.
-   Fix: whenever the app becomes visible again, or every few minutes while
-   it's open, check the real device date against what was loaded - if it
-   has moved on to a new day, reload automatically so "today" is correct. */
-const loadedDateStr = todayStr;
-function checkDateAndRefresh() {
-  const currentReal = todayISO();
-  if (currentReal !== loadedDateStr) {
-    location.reload();
-  }
+/* ================= BOTTOM SHEET ================= */
+function openSheet(k){
+  if(!BY_KEY[k]) return;
+  vib();
+  state.sheetKey = k;
+  renderSheet(0);
+  document.getElementById('sheet').scrollTop = 0;
+  document.getElementById('sheetOverlay').classList.add('open');
 }
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') checkDateAndRefresh();
+function closeSheet(){
+  const s = document.getElementById('sheet');
+  s.style.transform = '';
+  document.getElementById('sheetOverlay').classList.remove('open');
+}
+function renderSheet(dir){
+  const x = BY_KEY[state.sheetKey];
+  const sheet = document.getElementById('sheet');
+  const sc = x.cat ? CATS[x.cat].color : x.wknd ? 'var(--c-weekend)' : 'var(--amber)';
+  sheet.style.setProperty('--sc', sc);
+  const diff = dayDiff(T0, x.d);
+  const extra = [];
+  if(x.wknd) extra.push(`<span class="ctag" style="--cc:var(--c-weekend)">Weekend</span>`);
+  if(x.shade === 3 && !x.tags.includes('holiday')) extra.push(`<span class="ctag" style="--cc:var(--c-holiday)">Marked red</span>`);
+  if(x.key === TKEY) extra.unshift(`<span class="ctag" style="--cc:var(--amber)">Today</span>`);
+  const tags = ctags(x.tags) + extra.join('');
+  document.getElementById('sheetContent').innerHTML = `<div class="sh-in ${dir > 0 ? 'from-r' : dir < 0 ? 'from-l' : ''}">
+    <div class="sh-head">
+      <div class="sh-date"><b>${x.d.getDate()}</b><span>${MON[x.d.getMonth()].toUpperCase()}</span></div>
+      <div class="sh-title"><div class="a">${DOWL[x.dow]}</div><div class="b ${diff >= 0 && diff <= 7 ? 'hot' : ''}">${x.d.getDate()} ${MONTHS[x.d.getMonth()]} ${x.d.getFullYear()} · ${relDays(diff)}</div></div>
+      <button class="sh-close" onclick="closeSheet()" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    ${tags ? `<div class="sh-tags">${tags}</div>` : ''}
+    <div class="sh-text ${x.text ? '' : 'dim'}">${x.text ? fmtText(x.text) : (x.wknd ? 'Weekend — nothing on the calendar.' : 'No events listed for this day.')}</div>
+    <div class="sh-actions">
+      <button class="sh-btn" onclick="sheetStep(-1)" ${x.i === 0 ? 'disabled' : ''} aria-label="Previous day"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="sh-btn" onclick="sheetToMonth()"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17"/></svg>In month</button>
+      <button class="sh-btn pri" onclick="shareDay('${x.key}')"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12"/></svg>Share</button>
+      <button class="sh-btn" onclick="sheetStep(1)" ${x.i === DAYS.length - 1 ? 'disabled' : ''} aria-label="Next day"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>`;
+}
+function sheetStep(n){
+  const x = BY_KEY[state.sheetKey];
+  const y = DAYS[x.i + n]; if(!y) return;
+  vib(4); state.sheetKey = y.key; renderSheet(n);
+}
+function sheetToMonth(){
+  const x = BY_KEY[state.sheetKey];
+  closeSheet();
+  const target = new Date(x.d.getFullYear(), x.d.getMonth(), 1);
+  const dir = state.vm ? (target > state.vm ? 1 : target < state.vm ? -1 : 0) : 0;
+  state.vm = target; state.sel = x.key;
+  switchTab('month');
+  renderMonth(dir || null);
+}
+/* Drag down to dismiss, swipe sideways to step days. */
+(function(){
+  const s = document.getElementById('sheet');
+  let sy = 0, sx = 0, dy = 0, dx = 0, lock = null, active = false;
+  s.addEventListener('touchstart', e => {
+    active = s.scrollTop <= 0; sy = e.touches[0].clientY; sx = e.touches[0].clientX; dy = 0; dx = 0; lock = null;
+  }, {passive:true});
+  s.addEventListener('touchmove', e => {
+    const y = e.touches[0].clientY - sy, x = e.touches[0].clientX - sx;
+    if(lock === null && (Math.abs(x) > 10 || Math.abs(y) > 10)) lock = Math.abs(x) > Math.abs(y) ? 'x' : 'y';
+    if(lock === 'x'){ dx = x; return; }
+    if(lock === 'y' && active && y > 0){ e.preventDefault(); dy = y; s.classList.add('dragging'); s.style.transform = `translateY(${y}px)`; }
+  }, {passive:false});
+  s.addEventListener('touchend', () => {
+    if(lock === 'x' && Math.abs(dx) > 60){ sheetStep(dx < 0 ? 1 : -1); return; }
+    if(lock !== 'y') return;
+    s.classList.remove('dragging');
+    if(dy > 110) closeSheet(); else s.style.transform = '';
+  });
+})();
+document.addEventListener('keydown', e => {
+  if(!document.getElementById('sheetOverlay').classList.contains('open')) return;
+  if(e.key === 'Escape') closeSheet();
+  if(e.key === 'ArrowLeft') sheetStep(-1);
+  if(e.key === 'ArrowRight') sheetStep(1);
 });
-window.addEventListener('focus', checkDateAndRefresh);
-setInterval(checkDateAndRefresh, 5 * 60 * 1000); // safety net every 5 min while open
 
-/* ---------------- INIT ---------------- */
-function goToTodayOnLoad() {
-  updateStickyOffsets();
-  if (todayRowEl) todayRowEl.scrollIntoView({behavior: 'auto', block: 'start'});
+/* ================= SHARE / TOAST ================= */
+function shareDay(k){
+  const x = BY_KEY[k];
+  const text = `${DOWL[x.dow]}, ${x.d.getDate()} ${MONTHS[x.d.getMonth()]} ${x.d.getFullYear()}\n${x.text || 'No events listed'}\n— PSGIM Academic Calendar 2026–27`;
+  vib(8);
+  if(navigator.share){ navigator.share({title:'PSGIM Academic Calendar', text, url:location.href.split('?')[0]}).catch(() => {}); return; }
+  const done = () => toast('Copied to clipboard');
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => toast('Could not copy'));
+  else toast('Sharing not supported here');
 }
-window.addEventListener('load', () => {
-  requestAnimationFrame(() => requestAnimationFrame(goToTodayOnLoad));
-  // Fonts loading async can change header height slightly after first paint
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => requestAnimationFrame(updateStickyOffsets));
+let toastT = null;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ================= TABS / THEME ================= */
+function switchTab(t, keepScroll){
+  if(!TABS.includes(t)) return;
+  const from = TABS.indexOf(state.tab), to = TABS.indexOf(t);
+  const same = t === state.tab;
+  state.tab = t;
+  if(!same) vib();
+  TABS.forEach(x => {
+    document.getElementById('nav-' + x).classList.toggle('active', x === t);
+    const v = document.getElementById('view-' + x);
+    v.classList.remove('on', 'from-l', 'from-r');
+    if(x === t){ v.classList.add('on'); if(!same){ void v.offsetWidth; v.classList.add(to > from ? 'from-r' : 'from-l'); } }
+  });
+  document.getElementById('navInd').style.setProperty('--k', to);
+  document.getElementById('jumpFab').classList.remove('show');
+  try { history.replaceState(null, '', location.pathname + location.search + '#' + t); } catch(e){}
+  if(t === 'today' && !same){ renderYear(); renderCountdowns(); }
+  if(t === 'dates'){ renderKdCard(); renderKdList(); }
+  if(t === 'agenda'){
+    hookAgendaObservers();
+    if(!state.agendaScrolled){ state.agendaScrolled = true; requestAnimationFrame(() => agendaToToday(false)); return; }
   }
-});
+  if(!keepScroll) window.scrollTo({top:0, behavior:'instant'});
+  if(t === 'dates' && !keepScroll){
+    requestAnimationFrame(() => { const m = document.getElementById('kdToday'); if(m) window.scrollTo({top:Math.max(0, m.getBoundingClientRect().top + scrollY - innerHeight/3), behavior:'smooth'}); });
+  }
+}
+function syncThemeColor(){
+  const panel = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim();
+  document.getElementById('themeColorMeta').setAttribute('content', panel || '#12161C');
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const nx = cur === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', nx);
+  try { localStorage.setItem('psgim-cal-theme', nx); } catch(e){}
+  const b = document.getElementById('themeBtn'); b.innerHTML = b.innerHTML; // replay icon animation
+  syncThemeColor(); vib();
+}
+function measureHeader(){
+  const h = document.getElementById('pageHeader').offsetHeight;
+  document.documentElement.style.setProperty('--hdr', (h - 1) + 'px');
+}
+
+/* ================= INIT / REFRESH ================= */
+function renderAll(){
+  renderHeader(); renderClock();
+  renderBoard(); renderTicker(); renderCountdowns(); renderWeek(); renderYear(); renderUpcoming();
+  renderLegends(); renderMonth(null); renderAgenda(); renderKdCard(); renderKdList(); renderNavBadge();
+}
+function secondTick(){
+  if(document.hidden) return;
+  renderClock(); tickBoard(); tickCountdowns();
+}
+/* Phones suspend timers in the background, so the date is re-checked whenever
+   the app returns to the foreground — not only on the timer. */
+function refreshIfNewDay(){
+  const oldKey = TKEY;
+  computeToday();
+  if(TKEY === oldKey) return;
+  const wasOnTodayMonth = state.vm && state.vm.getMonth() === parseD(oldKey).getMonth();
+  if(wasOnTodayMonth) state.vm = clampMonth(new Date(T0.getFullYear(), T0.getMonth(), 1));
+  if(state.sel === oldKey && BY_KEY[TKEY]) state.sel = TKEY;
+  renderAll();
+}
+function init(){
+  syncThemeColor();
+  state.vm = clampMonth(new Date(T0.getFullYear(), T0.getMonth(), 1));
+  state.sel = BY_KEY[TKEY] ? TKEY : (DAYS.find(x => x.d.getMonth() === state.vm.getMonth() && x.d.getFullYear() === state.vm.getFullYear() && x.text) || DAYS[0]).key;
+  measureHeader();
+  renderAll();
+  const h = (location.hash || '').slice(1);
+  if(TABS.includes(h) && h !== 'today') switchTab(h);
+  setInterval(secondTick, 1000);
+  setInterval(refreshIfNewDay, 30000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden){ refreshIfNewDay(); secondTick(); } });
+  window.addEventListener('focus', refreshIfNewDay);
+  window.addEventListener('pageshow', refreshIfNewDay);
+  window.addEventListener('resize', measureHeader);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measureHeader(); renderTicker(); });
+}
+init();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
 </script>
 </body>
 </html>

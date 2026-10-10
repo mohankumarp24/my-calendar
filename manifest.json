@@ -1,22 +1,14 @@
 {
-  "name": "PSGIM Academic Calendar",
-  "short_name": "PSGIM Calendar",
-  "description": "PSG Institute of Management Academic Calendar 2026–2027",
+  "name": "PSGIM Academic Calendar 2026–27",
+  "short_name": "Calendar",
+  "description": "PSG Institute of Management — academic calendar 2026–27: today, month view, agenda, holidays and exams",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#F2F4F7",
-  "theme_color": "#1F3B5C",
+  "background_color": "#0B0D12",
+  "theme_color": "#12161C",
   "orientation": "portrait",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
