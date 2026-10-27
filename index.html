@@ -404,7 +404,22 @@
   .ag-ctrl{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
   .ag-ctrl .seg{width:168px; flex-shrink:0;}
   .ag-count{flex:1; text-align:right; font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); font-weight:700;}
-  .ag-month{position:sticky; top:var(--hdr); z-index:5; display:flex; align-items:baseline; justify-content:space-between; padding:12px 2px 8px; margin:0 -2px;
+  /* Pinned control bar: search, All days/Events and filters stay put while the list scrolls. */
+  .ag-sticky{position:sticky; top:var(--hdr); z-index:8; margin:-12px -16px 0; padding:12px 16px 8px;
+    background:color-mix(in srgb, var(--ink) 90%, transparent); -webkit-backdrop-filter:saturate(1.3) blur(14px); backdrop-filter:saturate(1.3) blur(14px);
+    border-bottom:1px solid transparent; transition:border-color .25s, box-shadow .25s;}
+  .ag-sticky.stuck{border-bottom-color:var(--line); box-shadow:0 12px 22px -18px rgba(0,0,0,.7);}
+  .ag-top{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .ag-top .searchwrap{flex:1; min-width:0; margin:0;}
+  .ag-top .searchbox{height:40px; border-radius:12px; font-size:13px; padding:0 34px 0 36px;}
+  .ag-top .searchwrap > svg.i{left:11px; width:17px; height:17px; margin-top:-8.5px;}
+  .ag-top .search-clear{right:5px;}
+  .ag-top .seg{width:142px; height:40px; flex-shrink:0;}
+  .ag-top .seg button{font-size:11px;}
+  .ag-legend{margin:0; align-items:center;}
+  .ag-legend .chip{height:27px;}
+  .ag-legend .ag-count{margin-left:auto; padding-left:6px; flex:none; text-align:right; font-size:9.5px; white-space:nowrap;}
+  .ag-month{position:sticky; top:calc(var(--hdr) + var(--agc, 0px)); z-index:5; display:flex; align-items:baseline; justify-content:space-between; padding:12px 2px 8px; margin:0 -2px;
     background:linear-gradient(180deg, var(--ink) 75%, transparent);}
   .ag-month .t{font-family:'Manrope',sans-serif; font-weight:800; font-size:14px; letter-spacing:-.2px;}
   .ag-month .t span{color:var(--text-faint); font-weight:700;}
@@ -652,20 +667,21 @@
 
   <!-- ===== AGENDA ===== -->
   <section id="view-agenda" class="view">
-    <div class="searchwrap">
-      <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input class="searchbox" id="q" type="search" placeholder="Search exam, viva, 24GA04, holiday…" oninput="onSearch()" autocomplete="off" enterkeyhint="search">
-      <button class="search-clear" id="qClear" aria-label="Clear search" onclick="clearSearch()"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
-    <div class="ag-ctrl">
-      <div class="seg" id="agSeg" style="--n:2; --k:0">
-        <span class="seg-thumb"></span>
-        <button class="active" onclick="setAgMode('all')">All days</button>
-        <button onclick="setAgMode('events')">Events</button>
+    <div class="ag-sticky" id="agSticky">
+      <div class="ag-top">
+        <div class="searchwrap">
+          <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input class="searchbox" id="q" type="search" placeholder="Search exam, viva, 24GA04…" oninput="onSearch()" autocomplete="off" enterkeyhint="search">
+          <button class="search-clear" id="qClear" aria-label="Clear search" onclick="clearSearch()"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div class="seg" id="agSeg" style="--n:2; --k:0">
+          <span class="seg-thumb"></span>
+          <button class="active" onclick="setAgMode('all')">All days</button>
+          <button onclick="setAgMode('events')">Events</button>
+        </div>
       </div>
-      <div class="ag-count" id="agCount"></div>
+      <div class="legend ag-legend"><span id="aLegend" style="display:contents"></span><span class="ag-count" id="agCount"></span></div>
     </div>
-    <div class="legend" id="aLegend"></div>
     <div id="agenda"></div>
     <div class="ag-foot">Shading follows the PSGIM calendar file<br><i style="background:color-mix(in srgb, var(--c-weekend) 45%, var(--panel))"></i>Weekend<i style="background:color-mix(in srgb, var(--c-holiday) 55%, var(--panel))"></i>Holiday</div>
   </section>
@@ -1269,11 +1285,12 @@ function renderUpcoming(){
 function legendHTML(target){
   const counts = {}; CAT_KEYS.forEach(c => counts[c] = DAYS.filter(x => x.tags.includes(c)).length);
   return `<button class="chip all ${state.filter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All</button>` +
-    CAT_KEYS.map(c => `<button class="chip ${state.filter === c ? 'active' : ''}" style="--cc:${CATS[c].color}" onclick="setFilter('${c}')"><span class="sw"></span>${CATS[c].label}${target === 'a' ? `<em>${counts[c]}</em>` : ''}</button>`).join('');
+    CAT_KEYS.map(c => `<button class="chip ${state.filter === c ? 'active' : ''}" style="--cc:${CATS[c].color}" onclick="setFilter('${c}')"><span class="sw"></span>${CATS[c].label}</button>`).join('');
 }
 function renderLegends(){
   document.getElementById('mLegend').innerHTML = legendHTML('m');
   document.getElementById('aLegend').innerHTML = legendHTML('a');
+  requestAnimationFrame(measureAgBar);
 }
 function setFilter(c){
   state.filter = (c !== 'all' && state.filter === c) ? 'all' : c;
@@ -1478,7 +1495,7 @@ function renderAgenda(){
   });
   const evDays = list.filter(x => x.has).length;
   const upN = list.filter(x => x.d >= T0).length;
-  document.getElementById('agCount').textContent = (ql || state.filter !== 'all') ? `${upN} upcoming · ${list.length - upN} past` : `${evDays} event days`;
+  document.getElementById('agCount').textContent = (ql || state.filter !== 'all') ? `${upN} ahead · ${list.length - upN} past` : `${evDays} event days`;
   if(!list.length){
     el.innerHTML = `<div class="empty-note">No days match ${q ? `“${esc(q)}”` : 'this filter'}.<br>Try “exam”, “holiday”, “viva”, a course code or a month name.</div>`;
     hookAgendaObservers(); return;
@@ -1536,11 +1553,12 @@ function hookAgendaObservers(){
   const fab = document.getElementById('jumpFab');
   const tr = agendaTodayEl();
   if(!tr){ fab.classList.remove('show'); return; }
+  const topCut = pinnedTop();
   todayObs = new IntersectionObserver(es => es.forEach(e => {
     const show = !e.isIntersecting && state.tab === 'agenda';
     fab.classList.toggle('show', show);
-    fab.classList.toggle('up', e.boundingClientRect.top < 0);
-  }));
+    fab.classList.toggle('up', e.boundingClientRect.top < topCut);
+  }), {rootMargin:`-${topCut}px 0px -70px 0px`});
   todayObs.observe(tr);
 }
 function agendaTodayEl(){ return document.querySelector('#agenda .ag-row.today') || document.getElementById('agToday'); }
@@ -1551,7 +1569,8 @@ function agendaToToday(smooth, quiet){
   if(!tr){ if(!smooth) window.scrollTo({top:0, behavior:'instant'}); return; }
   if(!quiet) vib();
   if(tr.classList.contains('rv')) tr.classList.add('in');
-  const y = tr.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.32;
+  const offset = Math.max(window.innerHeight * 0.32, pinnedTop() + 54);
+  const y = tr.getBoundingClientRect().top + window.scrollY - offset;
   window.scrollTo({top:Math.max(0, y), behavior:smooth ? 'smooth' : 'instant'});
 }
 function agendaLand(){ if(state.tab === 'agenda') requestAnimationFrame(() => agendaToToday(false, true)); }
@@ -1750,6 +1769,7 @@ function switchTab(t, keepScroll){
   if(t === 'today' && !same){ renderYear(); renderCountdowns(); renderMyExams(); }
   if(t === 'dates'){ renderKdCard(); renderKdTabs(); renderKdList(); }
   if(t === 'agenda'){
+    measureAgBar();
     hookAgendaObservers();
     if(!same){ requestAnimationFrame(() => agendaToToday(false, true)); return; }
   }
@@ -1773,7 +1793,25 @@ function toggleTheme(){
 function measureHeader(){
   const h = document.getElementById('pageHeader').offsetHeight;
   document.documentElement.style.setProperty('--hdr', (h - 1) + 'px');
+  measureAgBar();
 }
+/* Height of the pinned Agenda bar, so month headings and the "today" landing sit just below it. */
+let agBarH = 0;
+function measureAgBar(){
+  const b = document.getElementById('agSticky');
+  if(!b || !b.offsetHeight) return;
+  if(b.offsetHeight !== agBarH){
+    agBarH = b.offsetHeight;
+    document.documentElement.style.setProperty('--agc', agBarH + 'px');
+    if(state.tab === 'agenda') hookAgendaObservers();
+  }
+}
+function pinnedTop(){ return document.getElementById('pageHeader').offsetHeight + (state.tab === 'agenda' ? agBarH : 0); }
+window.addEventListener('scroll', () => {
+  if(state.tab !== 'agenda') return;
+  const b = document.getElementById('agSticky');
+  b.classList.toggle('stuck', b.getBoundingClientRect().top <= document.getElementById('pageHeader').offsetHeight + 1 && window.scrollY > 4);
+}, {passive:true});
 
 /* ================= INIT / REFRESH ================= */
 function renderAll(){
@@ -1796,6 +1834,7 @@ function refreshIfNewDay(){
   if(state.sel === oldKey && BY_KEY[TKEY]) state.sel = TKEY;
   renderAll();
 }
+try { if('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch(e){}
 function init(){
   syncThemeColor();
   state.vm = clampMonth(new Date(T0.getFullYear(), T0.getMonth(), 1));
