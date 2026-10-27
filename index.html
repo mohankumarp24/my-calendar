@@ -439,7 +439,9 @@
   .ag-row.empty .ag-t{font-size:11px; color:var(--text-faint); font-style:italic;}
   .tag{flex-shrink:0; font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; letter-spacing:.5px; border-radius:6px; padding:3px 6px;}
   .tag.now{color:#0B0D12; background:var(--amber);}
-  .ag-today-line{position:relative; display:flex; align-items:center; gap:8px; padding:4px 2px; font-family:'Space Mono',monospace; font-size:9.5px; font-weight:700; color:var(--amber); letter-spacing:.4px;}
+  .ag-today-line{position:relative; display:flex; align-items:center; gap:7px; padding:8px 2px; font-family:'Space Mono',monospace; font-size:9.5px; font-weight:700; color:var(--amber); letter-spacing:.4px; white-space:nowrap;}
+  .ag-today-line em{font-style:normal; color:var(--text-dim); font-weight:700; letter-spacing:.2px;}
+  .ag-today-line .live-dot{background:var(--amber);}
   .ag-today-line::after{content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--amber), transparent);}
   .ag-foot{font-size:10px; color:var(--text-faint); text-align:center; margin:18px 0 8px; line-height:1.6;}
   .ag-foot i{display:inline-block; width:8px; height:8px; border-radius:2px; vertical-align:-1px; margin:0 3px 0 8px;}
@@ -510,7 +512,7 @@
     font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px;}
 
 
-  /* ============ PERSONAL: MY EXAMS + II MBA ============ */
+  /* ============ PERSONAL: MY EXAMS + KEY DATES ============ */
   .pins{display:flex; flex-direction:column; gap:5px;}
   .pin{position:relative; display:flex; align-items:center; gap:9px; border-radius:11px; padding:8px 10px 8px 12px; overflow:hidden; text-align:left;
     background:color-mix(in srgb, var(--cc) 12%, var(--panel)); border:1px solid color-mix(in srgb, var(--cc) 45%, transparent);}
@@ -714,7 +716,7 @@ const RAW = [["2026-07-20","II MBA / II MBA WMSE - Semester III Commences - Meet
 
 const CATS = {
   myexam:   {label:'My exam',   color:'var(--c-mine)'},
-  batch:    {label:'II MBA',    color:'var(--c-batch)'},
+  batch:    {label:'Key dates', one:'Key date', color:'var(--c-batch)'},
   holiday:  {label:'Holiday',   color:'var(--c-holiday)',   re:/holiday|holiay/i},
   exam:     {label:'Exam',      color:'var(--c-exam)',      re:/exam/i},
   placement:{label:'Placement', color:'var(--c-placement)', re:/placement|internship|\bgip\b|induction/i},
@@ -778,7 +780,7 @@ const BATCH = [
   ['2027-03-29','IV','Semester Exams begin'],
   ['2027-05-15','IV','Graduation Day']
 ];
-function mineTitle(m){ return m.kind === 'myexam' ? `My exam: ${m.short} — ${m.title}` : `II MBA: ${m.title}`; }
+function mineTitle(m){ return m.kind === 'myexam' ? `My exam: ${m.short} — ${m.title}` : `Key date: ${m.title}`; }
 DAYS.forEach(x => { x.mine = []; });
 MY_EXAMS.forEach(e => { const x = BY_KEY[e.date]; if(x) x.mine.push(Object.assign({kind:'myexam'}, e)); });
 BATCH.forEach(([k, sem, title]) => { const x = BY_KEY[k]; if(x) x.mine.push({kind:'batch', sem, title}); });
@@ -787,7 +789,7 @@ DAYS.forEach(x => {
   x.cat = x.tags[0] || null;
   x.has = !!x.text || x.mine.length > 0;
   x.headline = x.mine.map(mineTitle).concat(x.text ? [x.text] : []).join(' / ');
-  x.find = (x.headline + ' ' + x.mine.map(m => m.code || '').join(' ')).toLowerCase();
+  x.find = (x.headline + ' ' + x.mine.map(m => m.kind === 'myexam' ? m.code : 'key dates').join(' ')).toLowerCase();
 });
 function baseTags(x){ return x.tags.filter(t => t !== 'myexam' && t !== 'batch'); }
 function examTimes(x){
@@ -800,10 +802,10 @@ function pinsHTML(x, opt){
   opt = opt || {};
   return `<div class="pins${opt.sm ? ' sm' : ''}">` + x.mine.map(m => m.kind === 'myexam'
     ? `<div class="pin" style="--cc:var(--c-mine)"><span class="pk">My exam</span><span class="pt">${m.short} · ${esc(m.title)}<small>${m.code} · ${EXAM_SLOT.name} ${EXAM_SLOT.label}</small></span></div>`
-    : `<div class="pin" style="--cc:var(--c-batch)"><span class="pk">II MBA</span><span class="pt">${esc(m.title)}<small>Sem ${m.sem} · MBA II Year academic schedule</small></span></div>`).join('') + `</div>`;
+    : `<div class="pin" style="--cc:var(--c-batch)"><span class="pk">Key date</span><span class="pt">${esc(m.title)}<small>Sem ${m.sem} · MBA II Year academic schedule</small></span></div>`).join('') + `</div>`;
 }
 function boardPins(x){
-  return x.mine.map(m => `<div class="tk-pin" style="--pc:${BOARD_COL[m.kind]}"><i>${m.kind === 'myexam' ? 'MY EXAM' : 'II MBA'}</i>${m.kind === 'myexam' ? `${m.short} · ${EXAM_SLOT.label}` : esc(m.title)}</div>`).join('');
+  return x.mine.map(m => `<div class="tk-pin" style="--pc:${BOARD_COL[m.kind]}"><i>${m.kind === 'myexam' ? 'MY EXAM' : 'KEY DATE'}</i>${m.kind === 'myexam' ? `${m.short} · ${EXAM_SLOT.label}` : esc(m.title)}</div>`).join('');
 }
 const START = DAYS[0].d, END = DAYS[DAYS.length-1].d;
 const TOTAL_WEEKS = Math.floor(dayDiff(START, END) / 7) + 1;
@@ -899,7 +901,7 @@ function fmtText(t, q){
   }
   return s.replace(/\u0001/g, ' <span class="sl">/</span> ');
 }
-function ctags(tags){ return tags.map(t => `<span class="ctag" style="--cc:${CATS[t].color}">${CATS[t].label}</span>`).join(''); }
+function ctags(tags){ return tags.map(t => `<span class="ctag" style="--cc:${CATS[t].color}">${CATS[t].one || CATS[t].label}</span>`).join(''); }
 function vib(ms){ try { if(navigator.vibrate) navigator.vibrate(ms || 6); } catch(e){} }
 
 /* Count-up for numbers when they first appear. */
@@ -931,7 +933,7 @@ function setRoll(el, str){
 /* ================= STATE ================= */
 const state = {
   tab:'today', filter:'all', agMode:'all', kd:'myexam',
-  vm:null, sel:null, sheetKey:null, agendaScrolled:false
+  vm:null, sel:null, sheetKey:null
 };
 function clampMonth(d){
   const lo = new Date(START.getFullYear(), START.getMonth(), 1), hi = new Date(END.getFullYear(), END.getMonth(), 1);
@@ -1028,7 +1030,7 @@ function renderTicker(){
     const live = r.start.d <= T0;
     const when = live ? 'NOW' : `${DOW[r.start.dow].toUpperCase()} ${r.start.d.getDate()} ${MON[r.start.d.getMonth()].toUpperCase()}`;
     const t = r.text.length > 70 ? r.text.slice(0, 68).trim() + '…' : r.text;
-    return `<span class="tt-item"><b>${when}</b><em>${esc(t)}</em><span class="st" style="--cc:${CATS[r.cat].color}">${CATS[r.cat].label.toUpperCase()}</span></span>`;
+    return `<span class="tt-item"><b>${when}</b><em>${esc(t)}</em><span class="st" style="--cc:${CATS[r.cat].color}">${(CATS[r.cat].one || CATS[r.cat].label).toUpperCase()}</span></span>`;
   });
   if(!items.length) items.push(`<span class="tt-item"><em>Nothing on the calendar for the next three weeks</em></span>`);
   const reps = Math.max(1, Math.ceil(4 / items.length));
@@ -1160,7 +1162,7 @@ function renderMilestone(){
   const dd = dayDiff(T0, r.start.d), live = r.start.d <= T0;
   const cnt = live ? 'Today' : dd === 1 ? 'Tomorrow' : `${dd} days`;
   el.innerHTML = `<div class="mc-date"><span class="m">${MON[r.start.d.getMonth()].toUpperCase()}</span><span class="dd">${r.start.d.getDate()}</span></div>
-    <div class="mc-body"><div class="k">Next for II MBA · Sem ${r.item.sem}</div><div class="l">${esc(r.text)}</div></div>
+    <div class="mc-body"><div class="k">Next key date · Sem ${r.item.sem}</div><div class="l">${esc(r.text)}</div></div>
     <span class="mc-count ${dd <= 14 ? 'hot' : ''}">${cnt}</span>`;
 }
 function openKd(k){ switchTab('dates'); setKd(k); }
@@ -1279,7 +1281,7 @@ function setFilter(c){
   renderLegends();
   renderMonthGrid(null, true);
   renderMonthList();
-  renderAgenda();
+  renderAgenda(); agendaLand();
 }
 
 function monthBounds(){
@@ -1299,7 +1301,7 @@ function renderMonthHead(dir){
   const ev = inM.filter(x => x.has).length, ho = cnt('holiday'), me = cnt('myexam'), ba = cnt('batch');
   const parts = [];
   if(me) parts.push(`<b class="pk-mine">${me}</b> my exam${me === 1 ? '' : 's'}`);
-  if(ba) parts.push(`<b class="pk-batch">${ba}</b> II MBA`);
+  if(ba) parts.push(`<b class="pk-batch">${ba}</b> key date${ba === 1 ? '' : 's'}`);
   parts.push(`<b>${ev}</b> event days`, `<b>${ho}</b> holiday${ho === 1 ? '' : 's'}`);
   const t = document.getElementById('mTitle');
   t.innerHTML = `<div class="mt">${MONTHS[m]} <span>${y}</span></div><div class="ms">${parts.join(' · ')}</div>`;
@@ -1454,7 +1456,7 @@ function monthToToday(){
 let revealObs = null, todayObs = null;
 function onSearch(){
   document.getElementById('qClear').classList.toggle('show', !!document.getElementById('q').value);
-  renderAgenda();
+  renderAgenda(); agendaLand();
 }
 function clearSearch(){ const q = document.getElementById('q'); q.value = ''; onSearch(); q.focus(); }
 function setAgMode(m){
@@ -1462,7 +1464,7 @@ function setAgMode(m){
   const seg = document.getElementById('agSeg');
   seg.style.setProperty('--k', m === 'all' ? 0 : 1);
   seg.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', (i === 0) === (m === 'all')));
-  renderAgenda();
+  renderAgenda(); agendaLand();
 }
 function renderAgenda(){
   const el = document.getElementById('agenda');
@@ -1475,25 +1477,37 @@ function renderAgenda(){
     return true;
   });
   const evDays = list.filter(x => x.has).length;
-  document.getElementById('agCount').textContent = (ql || state.filter !== 'all') ? `${list.length} match${list.length === 1 ? '' : 'es'}` : `${evDays} event days`;
+  const upN = list.filter(x => x.d >= T0).length;
+  document.getElementById('agCount').textContent = (ql || state.filter !== 'all') ? `${upN} upcoming · ${list.length - upN} past` : `${evDays} event days`;
   if(!list.length){
     el.innerHTML = `<div class="empty-note">No days match ${q ? `“${esc(q)}”` : 'this filter'}.<br>Try “exam”, “holiday”, “viva”, a course code or a month name.</div>`;
     hookAgendaObservers(); return;
   }
-  let html = '', curM = -1, open = false, todayLinePlaced = false;
+  /* Today marker: when today's own row isn't in the results (filters, search,
+     Events mode), a TODAY line sits where today falls so you can jump straight to it. */
+  const hasToday = list.some(x => x.key === TKEY);
+  const nextIdx = list.findIndex(x => x.d > T0);
+  const showMarker = PHASE === 'during' && !hasToday;
+  let marker = '';
+  if(showMarker){
+    const nx = nextIdx >= 0 ? list[nextIdx] : null;
+    const tail = nx ? `· next ${relDays(dayDiff(T0, nx.d)).toLowerCase()}` : '· nothing after this';
+    marker = `<div class="ag-today-line" id="agToday"><span class="live-dot pulsing"></span>TODAY · ${shortDate(T0).toUpperCase()}<em>${tail}</em></div>`;
+  }
+  let html = '', curM = -1, open = false;
   const monthCount = {};
   list.forEach(x => { const mk = x.d.getFullYear()*12 + x.d.getMonth(); monthCount[mk] = (monthCount[mk] || 0) + (x.has ? 1 : 0); });
-  list.forEach(x => {
+  list.forEach((x, i) => {
     const mk = x.d.getFullYear()*12 + x.d.getMonth();
+    if(showMarker && i === nextIdx){
+      if(mk !== curM){ if(open){ html += `</div>`; open = false; } html += marker; }
+      else html += marker;
+    }
     if(mk !== curM){
       if(open) html += `</div>`;
       html += `<div class="ag-month"><div class="t">${MONTHS[x.d.getMonth()]} <span>${x.d.getFullYear()}</span></div><div class="n">${monthCount[mk]} event day${monthCount[mk] === 1 ? '' : 's'}</div></div><div class="ag-list">`;
       curM = mk; open = true;
     }
-    if(!todayLinePlaced && !q && x.d >= T0 && x.key !== TKEY && PHASE === 'during'){
-      html += `<div class="ag-today-line">TODAY · ${shortDate(T0).toUpperCase()}</div>`; todayLinePlaced = true;
-    }
-    if(x.key === TKEY) todayLinePlaced = true;
     const isToday = x.key === TKEY, past = x.d < T0;
     const cls = ['ag-row', 'rv', x.has ? '' : 'empty',
       x.shade === 3 || x.tags.includes('holiday') ? 'hol' : x.shade === 2 ? 'we2' : (x.shade === 1 || x.wknd) ? 'we' : '',
@@ -1508,6 +1522,7 @@ function renderAgenda(){
       ${isToday ? '<span class="tag now">TODAY</span>' : ''}</button>`;
   });
   if(open) html += `</div>`;
+  if(showMarker && nextIdx < 0) html += marker;
   el.innerHTML = html;
   hookAgendaObservers();
 }
@@ -1519,7 +1534,7 @@ function hookAgendaObservers(){
   rows.forEach(r => revealObs.observe(r));
   if(todayObs) todayObs.disconnect();
   const fab = document.getElementById('jumpFab');
-  const tr = document.querySelector('#agenda .ag-row.today');
+  const tr = agendaTodayEl();
   if(!tr){ fab.classList.remove('show'); return; }
   todayObs = new IntersectionObserver(es => es.forEach(e => {
     const show = !e.isIntersecting && state.tab === 'agenda';
@@ -1528,17 +1543,21 @@ function hookAgendaObservers(){
   }));
   todayObs.observe(tr);
 }
-function agendaToToday(smooth){
-  const tr = document.querySelector('#agenda .ag-row.today');
-  if(!tr) return;
-  vib();
-  tr.classList.add('in');
-  const y = tr.getBoundingClientRect().top + window.scrollY - window.innerHeight / 2 + tr.offsetHeight / 2;
+function agendaTodayEl(){ return document.querySelector('#agenda .ag-row.today') || document.getElementById('agToday'); }
+/* Puts today (or the TODAY marker) about a third of the way down the screen,
+   so the next upcoming items are visible right below it. */
+function agendaToToday(smooth, quiet){
+  const tr = agendaTodayEl();
+  if(!tr){ if(!smooth) window.scrollTo({top:0, behavior:'instant'}); return; }
+  if(!quiet) vib();
+  if(tr.classList.contains('rv')) tr.classList.add('in');
+  const y = tr.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.32;
   window.scrollTo({top:Math.max(0, y), behavior:smooth ? 'smooth' : 'instant'});
 }
+function agendaLand(){ if(state.tab === 'agenda') requestAnimationFrame(() => agendaToToday(false, true)); }
 
 /* ================= KEY DATES ================= */
-const KD_TABS = [['myexam','My exams'],['batch','II MBA'],['holiday','Holidays'],['exam','Exams'],['placement','Placement']];
+const KD_TABS = [['myexam','My exams'],['batch','Key dates'],['holiday','Holidays'],['exam','Exams'],['placement','Placement']];
 function setKd(k){
   state.kd = k; vib();
   renderKdTabs(); renderKdList();
@@ -1552,10 +1571,10 @@ function renderKdCard(){
   const n = now();
   const mine = cdTargets('myexam'), b = RANGES.batch, h = RANGES.holiday;
   const left = list => list.filter(r => r.end.d >= T0).length;
-  el.innerHTML = `<div class="card-h"><div class="t">Key dates</div><div class="m">${shortDate(START)} – ${shortDate(END)}</div></div>
+  el.innerHTML = `<div class="card-h"><div class="t">At a glance</div><div class="m">${shortDate(START)} – ${shortDate(END)}</div></div>
     <div class="stats" style="margin-top:0">
       <button class="stat" style="--cc:var(--c-mine); text-align:left" onclick="setKd('myexam')"><b data-n="${mine.filter(t => t.e > n).length}">0</b><span>of ${mine.length} my exams left</span></button>
-      <button class="stat" style="--cc:var(--c-batch); text-align:left" onclick="setKd('batch')"><b data-n="${left(b)}">0</b><span>of ${b.length} II MBA dates left</span></button>
+      <button class="stat" style="--cc:var(--c-batch); text-align:left" onclick="setKd('batch')"><b data-n="${left(b)}">0</b><span>of ${b.length} key dates left</span></button>
       <button class="stat" style="--cc:var(--c-holiday); text-align:left" onclick="setKd('holiday')"><b data-n="${left(h)}">0</b><span>of ${h.length} holidays left</span></button>
     </div>`;
   el.querySelectorAll('[data-n]').forEach(b => countUp(b, +b.dataset.n));
@@ -1569,7 +1588,7 @@ function renderKdList(){
   const nextIdx = list.findIndex(r => !isDone(r) && r.start.d > T0);
   let head = '';
   if(kd === 'myexam') head = `<div class="kd-note" style="--cc:var(--c-mine)"><div><b>Semester III end-semester exams</b><span>Afternoon slot · ${EXAM_SLOT.label} · roll 25AA35</span><span class="warn">The college calendar file says II MBA exams begin 16 Nov — your exam card and the Director's schedule both say 23 Nov.</span></div><button class="pill-btn mine" onclick="downloadIcs()">+ Phone calendar</button></div>`;
-  if(kd === 'batch') head = `<div class="kd-note" style="--cc:var(--c-batch)"><div><b>MBA II Year (2025–27) batch</b><span>Academic schedule 2026–27, issued by the Director</span></div></div>`;
+  if(kd === 'batch') head = `<div class="kd-note" style="--cc:var(--c-batch)"><div><b>Key dates · MBA II Year (2025–27)</b><span>Academic schedule 2026–27 issued by the Director — project, reviews, class committees, exams, graduation</span></div></div>`;
   let html = head + '<div class="tl">', curM = -1, todayPlaced = false;
   list.forEach((r, i) => {
     const mk = r.start.d.getFullYear()*12 + r.start.d.getMonth();
@@ -1696,7 +1715,7 @@ document.addEventListener('keydown', e => {
 /* ================= SHARE / TOAST ================= */
 function shareDay(k){
   const x = BY_KEY[k];
-  const lines = x.mine.map(m => m.kind === 'myexam' ? `My exam: ${m.short} — ${m.title} (${m.code}), ${EXAM_SLOT.label}` : `II MBA: ${m.title}`);
+  const lines = x.mine.map(m => m.kind === 'myexam' ? `My exam: ${m.short} — ${m.title} (${m.code}), ${EXAM_SLOT.label}` : `Key date: ${m.title}`);
   if(x.text) lines.push(x.text);
   const text = `${DOWL[x.dow]}, ${x.d.getDate()} ${MONTHS[x.d.getMonth()]} ${x.d.getFullYear()}\n${lines.join('\n') || 'No events listed'}\n— PSGIM Academic Calendar 2026–27`;
   vib(8);
@@ -1732,7 +1751,7 @@ function switchTab(t, keepScroll){
   if(t === 'dates'){ renderKdCard(); renderKdTabs(); renderKdList(); }
   if(t === 'agenda'){
     hookAgendaObservers();
-    if(!state.agendaScrolled){ state.agendaScrolled = true; requestAnimationFrame(() => agendaToToday(false)); return; }
+    if(!same){ requestAnimationFrame(() => agendaToToday(false, true)); return; }
   }
   if(!keepScroll) window.scrollTo({top:0, behavior:'instant'});
   if(t === 'dates' && !keepScroll){
