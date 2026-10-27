@@ -32,6 +32,7 @@
     --text:#EEF0F3; --text-dim:#9AA1AD; --text-faint:#5E6572;
     --amber:#FFB020; --amber-ink:#1A1306; --amber-soft:rgba(255,176,32,0.14); --live:#5FD68A;
     --c-holiday:#FF6B6B; --c-exam:#5B8DEF; --c-placement:#A67CF0; --c-event:#3FBFA5; --c-weekend:#6FBF5B;
+    --c-mine:#FF5FA2; --c-batch:#45C4EC;
     --radius:16px; --safe-b:env(safe-area-inset-bottom, 0px); --hdr:64px;
     --ease:cubic-bezier(.3,.9,.3,1); --spring:cubic-bezier(.34,1.5,.64,1);
   }
@@ -41,6 +42,7 @@
     --text:#14171C; --text-dim:#5B626E; --text-faint:#98A0AC;
     --amber:#B87400; --amber-ink:#FFFFFF; --amber-soft:rgba(184,116,0,0.12); --live:#17864B;
     --c-holiday:#D64545; --c-exam:#2F6FDB; --c-placement:#7A4FD0; --c-event:#16917B; --c-weekend:#3E9A35;
+    --c-mine:#C8306F; --c-batch:#137FA6;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
@@ -507,6 +509,85 @@
   .nav-badge{position:absolute; top:7px; left:50%; margin-left:9px; min-width:15px; height:15px; border-radius:8px; background:var(--amber); color:#0B0D12;
     font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px;}
 
+
+  /* ============ PERSONAL: MY EXAMS + II MBA ============ */
+  .pins{display:flex; flex-direction:column; gap:5px;}
+  .pin{position:relative; display:flex; align-items:center; gap:9px; border-radius:11px; padding:8px 10px 8px 12px; overflow:hidden; text-align:left;
+    background:color-mix(in srgb, var(--cc) 12%, var(--panel)); border:1px solid color-mix(in srgb, var(--cc) 45%, transparent);}
+  .pin::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--cc); box-shadow:0 0 10px var(--cc);}
+  .pin .pk{flex-shrink:0; font-family:'Space Mono',monospace; font-size:8.5px; font-weight:700; letter-spacing:.8px; color:var(--cc); text-transform:uppercase; white-space:nowrap;}
+  .pin .pt{flex:1; min-width:0; font-family:'Manrope',sans-serif; font-weight:800; font-size:12.5px; line-height:1.3; color:var(--text);}
+  .pin .pt small{display:block; font-family:'Inter',sans-serif; font-weight:600; font-size:10.5px; color:var(--text-dim); margin-top:2px;}
+  .pins.sm{gap:4px;}
+  .pins.sm + .ag-t{margin-top:6px;}
+  .pins.sm .pin{padding:5px 8px 5px 10px; border-radius:8px;}
+  .pins.sm .pt{font-size:11.5px;}
+  .pins.sm .pt small{display:none;}
+  .tk-pin{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11px; font-weight:700; color:#E9ECF1; line-height:1.3;
+    background:rgba(255,255,255,.05); border:1px solid color-mix(in srgb, var(--pc) 55%, transparent); border-radius:8px; padding:4px 7px;}
+  .tk-pin i{font-style:normal; font-family:'Space Mono',monospace; font-size:8px; letter-spacing:.6px; color:var(--pc); flex-shrink:0;}
+  .pk-mine{color:var(--c-mine) !important;} .pk-batch{color:var(--c-batch) !important;}
+
+  .cell.mine{border-color:color-mix(in srgb, var(--c-mine) 70%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--c-mine) 40%, transparent);}
+  .cell .mk{position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:50%; background:var(--c-mine); z-index:3; animation:mk-ping 2s ease-out infinite;}
+  @keyframes mk-ping{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--c-mine) 70%, transparent);} 100%{box-shadow:0 0 0 6px transparent;}}
+  .cell.mine.past .mk{animation:none;}
+  .wk-d.mine{border-color:color-mix(in srgb, var(--c-mine) 70%, transparent);}
+  .wk-d.mine .dd{color:var(--c-mine);}
+  .ag-row.mine{border-color:color-mix(in srgb, var(--c-mine) 55%, transparent); box-shadow:0 8px 20px -14px var(--c-mine);}
+  .yr-ex{position:absolute; bottom:-9px; width:5px; height:5px; margin-left:-2.5px; border-radius:1px; transform:rotate(45deg); background:var(--c-mine);}
+  .yr-ex.done{opacity:.3;}
+
+  .mx-card{overflow:hidden; isolation:isolate;}
+  .mx-card::before{content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; border-radius:inherit;
+    background:radial-gradient(90% 55% at 100% 0%, color-mix(in srgb, var(--c-mine) 14%, transparent), transparent 70%);}
+  .mx-dot{--cc:var(--c-mine); width:8px; height:8px; border-radius:50%; background:var(--c-mine); animation:cd-ping 2s ease-out infinite;}
+  .mx-list{display:flex; flex-direction:column;}
+  .mx-row{position:relative; display:flex; align-items:center; gap:11px; width:100%; text-align:left; padding:9px 11px 9px 6px; border-radius:12px;
+    background:var(--panel-soft); border:1px solid var(--line); transition:transform .15s; animation:rise .45s var(--ease) backwards; animation-delay:calc(var(--i) * 60ms + 200ms);}
+  .mx-row:active{transform:scale(.985);}
+  .mx-d{flex-shrink:0; width:52px; text-align:center; line-height:1;}
+  .mx-d b{display:block; font-family:'Space Mono',monospace; font-size:19px; font-weight:700; letter-spacing:-.5px;}
+  .mx-d span{display:block; font-size:8px; font-weight:700; color:var(--text-dim); margin-top:4px; letter-spacing:.4px;}
+  .mx-b{flex:1; min-width:0;}
+  .mx-t{font-family:'Manrope',sans-serif; font-weight:800; font-size:14px; display:flex; align-items:center; gap:7px;}
+  .mx-t em{font-style:normal; font-family:'Space Mono',monospace; font-size:9.5px; font-weight:700; color:var(--text-dim); background:var(--panel-raised); border-radius:5px; padding:1px 5px;}
+  .mx-s{font-size:10.5px; color:var(--text-dim); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .mx-w{flex-shrink:0; font-family:'Space Mono',monospace; font-size:10px; font-weight:700; color:var(--text-dim);}
+  .mx-row.next{border-color:var(--c-mine); background:color-mix(in srgb, var(--c-mine) 9%, var(--panel-soft)); box-shadow:0 0 0 1px var(--c-mine), 0 10px 22px -12px var(--c-mine);}
+  .mx-row.next .mx-w, .mx-row.next .mx-d b{color:var(--c-mine);}
+  .mx-row.live{border-color:var(--live); box-shadow:0 0 0 1px var(--live), 0 10px 22px -12px var(--live);}
+  .mx-row.live .mx-w{color:var(--live);}
+  .mx-row.done{opacity:.45;}
+  .mx-row.done .mx-w{color:var(--live);}
+  .mx-gap{display:flex; align-items:center; gap:9px; padding:4px 0 4px 31px; font-family:'Space Mono',monospace; font-size:9px; color:var(--text-faint); font-weight:700; letter-spacing:.3px;}
+  .mx-gap::before{content:''; width:2px; height:14px; border-radius:2px; background:repeating-linear-gradient(180deg, var(--line-strong) 0 3px, transparent 3px 6px);}
+  .mx-foot{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; font-size:10.5px; color:var(--text-dim); font-weight:600;}
+  .mx-foot b{color:var(--text); font-family:'Space Mono',monospace; font-weight:700;}
+  .pill-btn.mine{background:color-mix(in srgb, var(--c-mine) 14%, transparent); border-color:color-mix(in srgb, var(--c-mine) 50%, transparent); color:var(--c-mine); flex-shrink:0;}
+
+  .ms-chip{position:relative; display:flex; align-items:center; gap:11px; background:var(--panel); border:1px solid var(--line); border-radius:13px;
+    padding:7px 10px 7px 11px; margin-bottom:10px; width:100%; text-align:left; overflow:hidden; transition:transform .15s;}
+  .ms-chip::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--c-batch); box-shadow:0 0 10px var(--c-batch);}
+  .ms-chip:active{transform:scale(.985);}
+  .mc-date{flex-shrink:0; width:38px; height:38px; border-radius:10px; background:color-mix(in srgb, var(--c-batch) 14%, var(--panel-raised));
+    display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1;}
+  .mc-date .m{font-size:8px; font-weight:800; color:var(--c-batch); letter-spacing:.4px;}
+  .mc-date .dd{font-family:'Space Mono',monospace; font-weight:700; font-size:15px; margin-top:2px;}
+  .mc-body{flex:1; min-width:0;}
+  .mc-body .k{font-size:9.5px; color:var(--text-dim); font-weight:600;}
+  .mc-body .l{font-family:'Manrope',sans-serif; font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;}
+  .mc-count{flex-shrink:0; font-family:'Space Mono',monospace; font-size:10.5px; font-weight:700; color:var(--text-dim); background:var(--panel-raised); border-radius:7px; padding:4px 7px;}
+  .mc-count.hot{color:var(--c-batch); background:color-mix(in srgb, var(--c-batch) 14%, transparent);}
+
+  .kd-note{display:flex; align-items:center; gap:10px; background:color-mix(in srgb, var(--cc) 8%, var(--panel)); border:1px solid color-mix(in srgb, var(--cc) 35%, transparent);
+    border-radius:13px; padding:11px 12px; margin:6px 0 4px;}
+  .kd-note > div{flex:1; min-width:0;}
+  .kd-note b{display:block; font-family:'Manrope',sans-serif; font-weight:800; font-size:13px;}
+  .kd-note span{display:block; font-size:10.5px; color:var(--text-dim); font-weight:600; margin-top:3px; line-height:1.4;}
+  .kd-note span.warn{color:var(--amber); margin-top:6px;}
+  button.stat{transition:transform .15s;} button.stat:active{transform:scale(.95);}
+
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
     *, *::before, *::after{animation:none !important; transition:none !important;}
@@ -540,9 +621,11 @@
       <div class="ticker-tape"><div class="ticker-track" id="tickerTrack"></div></div>
     </div>
     <div class="cd-row rise" id="cdRow" style="--d:1"></div>
-    <div class="card rise" id="weekCard" style="--d:2"></div>
-    <div class="card rise" id="yearCard" style="--d:3"></div>
-    <div class="section-title rise" style="--d:4">Coming up <span class="n" id="upN"></span></div>
+    <div class="card mx-card rise" id="mxCard" style="--d:2"></div>
+    <button class="ms-chip rise" id="msChip" style="--d:2" onclick="openKd('batch')"></button>
+    <div class="card rise" id="weekCard" style="--d:3"></div>
+    <div class="card rise" id="yearCard" style="--d:4"></div>
+    <div class="section-title rise" style="--d:5">Coming up <span class="n" id="upN"></span></div>
     <div class="tl" id="upcoming"></div>
   </section>
 
@@ -569,7 +652,7 @@
   <section id="view-agenda" class="view">
     <div class="searchwrap">
       <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input class="searchbox" id="q" type="search" placeholder="Search exam, holiday, viva, GIP…" oninput="onSearch()" autocomplete="off" enterkeyhint="search">
+      <input class="searchbox" id="q" type="search" placeholder="Search exam, viva, 24GA04, holiday…" oninput="onSearch()" autocomplete="off" enterkeyhint="search">
       <button class="search-clear" id="qClear" aria-label="Clear search" onclick="clearSearch()"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="ag-ctrl">
@@ -588,12 +671,7 @@
   <!-- ===== KEY DATES ===== -->
   <section id="view-dates" class="view">
     <div class="card" id="kdCard"></div>
-    <div class="seg" id="kdSeg" style="--n:3; --k:0; margin-bottom:6px">
-      <span class="seg-thumb"></span>
-      <button class="active" onclick="setKd('holiday')">Holidays</button>
-      <button onclick="setKd('exam')">Exams</button>
-      <button onclick="setKd('placement')">Placement</button>
-    </div>
+    <div class="legend" id="kdTabs"></div>
     <div id="kdList"></div>
   </section>
 </main>
@@ -635,12 +713,15 @@
 const RAW = [["2026-07-20","II MBA / II MBA WMSE - Semester III Commences - Meeting with Director / \nCommencement of Project phase I",0],["2026-07-21","",0],["2026-07-22","",0],["2026-07-23","CRMT - 2026 - International Conference",0],["2026-07-24","CRMT - 2026 - International Conference",0],["2026-07-25","",1],["2026-07-26","",2],["2026-07-27","Board Room Simulation for II MBA",0],["2026-07-28","Board Room Simulation for II MBA",0],["2026-07-29","II Year - MBA / MBA (WMSE)  Internship Poster Presentation",0],["2026-07-30","Board Room Simulation for II MBA",0],["2026-07-31","Board Room Simulation for II MBA",0],["2026-08-01","Board Room Simulation for II MBA",1],["2026-08-02","",1],["2026-08-03","II MBA Project Work / \nI MBA  Induction  MBA , MBA WMSE,ISW and IMBA",0],["2026-08-04","II year NKU Semester III begins/ I MBA induction/ Integrated MBA Induction",0],["2026-08-05","II MBA Project Work / \n/I MBA induction/Integrated MBA Induction",0],["2026-08-06","II MBA Project Work / \nInduction / II Year NKU Internship Viva",0],["2026-08-07","Summer courses ends for II year UT /\nI Year MBA - Induction - ALPS Visit",0],["2026-08-08","I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students",2],["2026-08-09","I Year MBA - Induction - ALPS Visit / Finance Bootcamp - II Year MBA Students",2],["2026-08-10","II year  MBA placement training / I MBA Induction",0],["2026-08-11","II year  MBA placement training / I MBA Induction",0],["2026-08-12","II year  MBA placement training / I MBA Induction",0],["2026-08-13","II year  MBA placement training / I MBA Induction",0],["2026-08-14","II year  MBA placement training / I MBA Induction",0],["2026-08-15","Independence Day/ I MBA induction/ Integrated MBA Induction",2],["2026-08-16","",2],["2026-08-17","II year MBA regular classes resume/ \nI Year MBA, MBA(WMSE), MBA(ISW) and IMBA Classes Commence",0],["2026-08-18","",0],["2026-08-19","",0],["2026-08-20","",0],["2026-08-21","",0],["2026-08-22","",1],["2026-08-23","",1],["2026-08-24","Week of Games / II MBA Project viva Phase I - WEEK",0],["2026-08-25","Week of Games",0],["2026-08-26","Holiday - Miladi Nabi / Onam",3],["2026-08-27","Week of Games",0],["2026-08-28","Week of Games",0],["2026-08-29","Finance Bootcamp - II Year MBA Students",1],["2026-08-30","Finance Bootcamp - II Year MBA Students",1],["2026-08-31","",0],["2026-09-01","",0],["2026-09-02","Foundation Day",0],["2026-09-03","",0],["2026-09-04","Holiday - Krishna Jayanthi",3],["2026-09-05","",1],["2026-09-06","",1],["2026-09-07","WOW",0],["2026-09-08","WOW",0],["2026-09-09","WOW",0],["2026-09-10","WOW",0],["2026-09-11","WOW",0],["2026-09-12","WOW Finale",1],["2026-09-13","",1],["2026-09-14","Holiday - vinayagar chaturthi",3],["2026-09-15","",0],["2026-09-16","Class committee meeting - I for Integrated MBA 1st Semester",0],["2026-09-17","Class committee meeting I for I year  MBA / MBA WMSE and UT, NKU, IIT & LBU",0],["2026-09-18","",0],["2026-09-19","",1],["2026-09-20","",1],["2026-09-21","Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT",0],["2026-09-22","Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT",0],["2026-09-23","Mid term examination for Integrated MBA 1st Semester / I MBA and WMSE & UT,NKU, LBU , IIT",0],["2026-09-24","Mid term examination for I Yr UT,NKU, LBU , IIT/ Class committee meeting -I  for II year UT,  NKU,  MBA, & WMSE",0],["2026-09-25","TEAM-ALPS for First Year MBA Batch-1",0],["2026-09-26","TEAM-ALPS for First Year MBA Batch-1",1],["2026-09-27","TEAM-ALPS for First Year MBA Batch-1",1],["2026-09-28","",0],["2026-09-29","",0],["2026-09-30","Class committee meeting- II for I year LBU",0],["2026-10-01","",0],["2026-10-02","Holiday - Gandhi Jayanthi",3],["2026-10-03","",1],["2026-10-04","",1],["2026-10-05","Project Interim Review  Week",0],["2026-10-06","Project Interim Review  Week",0],["2026-10-07","Project Interim Review  Week / Class committee meeting- III for I year LBU",0],["2026-10-08","Project Interim Review  Week",0],["2026-10-09","Talent Night / Last Working Day for LBU",0],["2026-10-10","",1],["2026-10-11","",1],["2026-10-12","Class committee meeting - II for Integrated MBA 1st Semester / Semester Exam commence for LBU",0],["2026-10-13","",0],["2026-10-14","",0],["2026-10-15","Class committee meeting- II for I year UT,  NKU,  IIT,  MBA, & WMSE/ II MBA & WMSE - Project Interim Review",0],["2026-10-16","Semester Exam end for LBU",0],["2026-10-17","",1],["2026-10-18","",1],["2026-10-19","Holiday - Saraswathi Pooja",3],["2026-10-20","Holiday - Vijayadashami",3],["2026-10-21","Mid term examination - 2 for Integrated MBA 1st Semester",0],["2026-10-22","Mid term examination - 2 for Integrated MBA 1st Semester",0],["2026-10-23","Mid term examination - 2 for Integrated MBA 1st Semester / TEAM-ALPS for First Year MBA Batch-2",0],["2026-10-24","Publication of LBU Results / TEAM-ALPS for First Year MBA Batch-2",1],["2026-10-25","TEAM-ALPS for First Year MBA Batch-2",1],["2026-10-26","",0],["2026-10-27","",0],["2026-10-28","",0],["2026-10-29","Class Committee Meeting-II for II Year UT, NKU, Anna & WMSE / \nClass committee meeting- II for II year UT,  NKU,  IIT,  MBA, & WMSE",0],["2026-10-30","TEAM-ALPS for First Year MBA Batch-3",0],["2026-10-31","TEAM-ALPS for First Year MBA Batch-3",1],["2026-11-01","TEAM-ALPS for First Year MBA Batch-3",1],["2026-11-02","",0],["2026-11-03","",0],["2026-11-04","",0],["2026-11-05","Project Phase II Report Submission",0],["2026-11-06","Diwali Celebration in Manavar Illam/ Last Working Day for I Year UT, NKU & IIT",0],["2026-11-07","",1],["2026-11-08","Holiay- Diwali",1],["2026-11-09","",0],["2026-11-10","",0],["2026-11-11","Class committee meeting - III for Integrated MBA 1st Semester",0],["2026-11-12","Class committee meeting - III for I MBA & MBA WMSE , UT, NKU and IIT",0],["2026-11-13","Project Viva Voce - II MBA & WMSE / TEAM-ALPS for First Year MBA ISW",0],["2026-11-14","TEAM-ALPS for First Year MBA ISW",1],["2026-11-15","TEAM-ALPS for First Year MBA ISW",1],["2026-11-16","Semester III Exam begins for II Year MBA, WMSE, UT & NKU",0],["2026-11-17","",0],["2026-11-18","",0],["2026-11-19","",0],["2026-11-20","Social Sensitiation for Managers Viva I MBA /\nLast Working day for II Year MBA & WMSE, UT & NKU / I year UT,NKU & IIT",0],["2026-11-21","",2],["2026-11-22","",2],["2026-11-23","Semester III Exam begins for II Year MBA, WMSE, UT ,NKU & IIT / Semester-I  exams begins I-year UT,NKU & IIT",0],["2026-11-24","",0],["2026-11-25","",0],["2026-11-26","",0],["2026-11-27","Last Working day for I year MBA & WMSE and  Integrated MBA 1st Semester",0],["2026-11-28","",1],["2026-11-29","",1],["2026-11-30","End Semester Exam begins for I MBA , MBA  WMSE and  Integrated MBA / Semester Exam end for I-year UT,NKU &IIT",0],["2026-12-01","",0],["2026-12-02","Semester II Class Commence for I Year UT & NKU\nSemester IV class commence for II Year MBA, WMSE & NKU,UT\nCapstone course commence for II year UT (Tentative)",0],["2026-12-03","",0],["2026-12-04","",0],["2026-12-05","",1],["2026-12-06","",1],["2026-12-07","Class Commenses for  I year MBA / MBA WMSE/ Semester II class commences for Integrated MBA",0],["2026-12-08","",0],["2026-12-09","Semester IV class commence for II Year MBA, WMSE & NKU,UT",0],["2026-12-10","",0],["2026-12-11","",0],["2026-12-12","",2],["2026-12-13","",2],["2026-12-14","",0],["2026-12-15","",0],["2026-12-16","",0],["2026-12-17","AIMS Convention",0],["2026-12-18","Capstone course end for UT (Tentative)/AIMS Convention",0],["2026-12-19","Rapport /AIMS Convention",1],["2026-12-20","",1],["2026-12-21","",0],["2026-12-22","",0],["2026-12-23","",0],["2026-12-24","",0],["2026-12-25","Holiday - Christmas",3],["2026-12-26","",1],["2026-12-27","",1],["2026-12-28","",0],["2026-12-29","",0],["2026-12-30","",0],["2026-12-31","",0],["2027-01-01","Holiday - New Year",3],["2027-01-02","",1],["2027-01-03","",1],["2027-01-04","",0],["2027-01-05","",0],["2027-01-06","",0],["2027-01-07","Class Committee Meeting -I for II Year MBA, WMSE & NKU",0],["2027-01-08","Class Committee Meeting -I for I year MBA & WMSE",0],["2027-01-09","",1],["2027-01-10","",1],["2027-01-11","Semester-II exam begins for I year UT & NKU/ Class Committee Meeting -I for Integrated MBA 2nd Semester",0],["2027-01-12","",0],["2027-01-13","",0],["2027-01-14","",0],["2027-01-15","Holiday - Pongal",3],["2027-01-16","Holiday - Thiruvalluvar Day",3],["2027-01-17","Holiday - Uzhavar Thirunal",3],["2027-01-18","Mid term Examination for I year MBA & WMSE/ Mid term Examination for Integrated MBA 2nd Semester",0],["2027-01-19","Mid term Examination for I year MBA & WMSE / Spring Courses commence for I year NKU/ Mid term Examination for Integrated MBA 2nd Semester",0],["2027-01-20","Mid term Examination for I year MBA & WMSE / Mid term Examination for Integrated MBA 2nd Semester",0],["2027-01-21","Class Committee Meeting -I for II Year MBA, WMSE & NKU ,UT",0],["2027-01-22","Srijana 2026",0],["2027-01-23","Srijana 2026",1],["2027-01-24","",1],["2027-01-25","",0],["2027-01-26","Holiday - Republic Day/ GIP",3],["2027-01-27","",0],["2027-01-28","",0],["2027-01-29","",0],["2027-01-30","",1],["2027-01-31","",1],["2027-02-01","",0],["2027-02-02","C.R.Swaminathan Endowment Lecture",0],["2027-02-03","",0],["2027-02-04","Summer Internship Begins -First Year UT",0],["2027-02-05","",0],["2027-02-06","",2],["2027-02-07","",2],["2027-02-08","",0],["2027-02-09","",0],["2027-02-10","",0],["2027-02-11","",0],["2027-02-12","Class Committee Meeting -II for Integrated MBA 2nd Semester",0],["2027-02-13","",1],["2027-02-14","GIP",1],["2027-02-15","GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester",0],["2027-02-16","GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester",0],["2027-02-17","GIP /  Mid term examination - 2 for Integrated MBA 2nd Semester",0],["2027-02-18","GIP              Class Committee Meeting - II for II year MBA, WMSE & NKU",0],["2027-02-19","GIP / Class Committee Meeting - II for I year MBA, WMSE & NKU",0],["2027-02-20","GIP",2],["2027-02-21","GIP",2],["2027-02-22","GIP",0],["2027-02-23","GIP",0],["2027-02-24","GIP",0],["2027-02-25","GIP / Class Committee Meeting - II for II year MBA, WMSE & NKU,UT",0],["2027-02-26","GIP",0],["2027-02-27","GIP / II MBA & WMSE - Completion of Project",1],["2027-02-28","GIP",1],["2027-03-01","Last day for submission of Internship companies to Program office for I year NKU",0],["2027-03-02","",0],["2027-03-03","AIMA NSMG 2027",0],["2027-03-04","AIMA NSMG 2027",0],["2027-03-05","AIMA NSMG 2027",0],["2027-03-06","",1],["2027-03-07","",1],["2027-03-08","International Women's day 2027/ Capstone Course commence for II Year NKU",0],["2027-03-09","",0],["2027-03-10","Holiday Ramzan",3],["2027-03-11","Class Committee Meeting - II for I year MBA, WMSE & NKU",0],["2027-03-12","Class Committee meeting- III for Integrated MBA 2nd Semester / Annual Day 2027",0],["2027-03-13","",1],["2027-03-14","",1],["2027-03-15","",0],["2027-03-16","",0],["2027-03-17","",0],["2027-03-18","",0],["2027-03-19","Last Working Day for II Year MBA & WMSE ,UT,NKU",0],["2027-03-20","",2],["2027-03-21","",2],["2027-03-22","Semester IV exam begins for II Year Anna & WMSE,UT,NKU",0],["2027-03-23","",0],["2027-03-24","",0],["2027-03-25","Capstone Course End for II Year NKU / Last Working Day for II Year MBA & WMSE ,UT,NKU",0],["2027-03-26","Holiday - Good Friday",3],["2027-03-27","",2],["2027-03-28","",2],["2027-03-29","Semester IV exam begins for II Year Anna & WMSE,UT,NKU",0],["2027-03-30","Last day for submission of Internship companies to Program office for I MBA & WMSE",0],["2027-03-31","",0],["2027-04-01","Class Committe meeting- III for I year MBA & WMSE",0],["2027-04-02","Spring Courses Ends for I year NKU/ Last Working Day for Integrated MBA 2nd Semester",0],["2027-04-03","",1],["2027-04-04","",1],["2027-04-05","Summer Internship Begins for I year NKU/ Semester II Examinations begins for Integrated MBA 2nd Semester",0],["2027-04-06","",0],["2027-04-07","Holiday -  Telugu New Year's Day",3],["2027-04-08","Business Immersion Viva for I MBA",0],["2027-04-09","",0],["2027-04-10","",1],["2027-04-11","",1],["2027-04-12","",0],["2027-04-13","",0],["2027-04-14","Holiday - Tamil New Year",3],["2027-04-15","",0],["2027-04-16","Last Working Day for I Year MBA & WMSE",0],["2027-04-17","",2],["2027-04-18","",2],["2027-04-19","Holiday - Mahaveer Jayanthi",3],["2027-04-20","Semeter Exam II begins for I MBA & WMSE",0],["2027-04-21","Summer Intership end-First Year UT",0],["2027-04-22","",0],["2027-04-23","",0],["2027-04-24","",2],["2027-04-25","",2],["2027-04-26","Summer Courses commence for I year UT (Tentative)",0],["2027-04-27","",0],["2027-04-28","",0],["2027-04-29","",0],["2027-04-30","",0],["2027-05-01","Holiday - May Day",2],["2027-05-02","",2],["2027-05-03","I MBA  Internship Begins",0],["2027-05-04","",0],["2027-05-05","",0],["2027-05-06","",0],["2027-05-07","",0],["2027-05-08","",1],["2027-05-09","",1],["2027-05-10","",0],["2027-05-11","",0],["2027-05-12","",0],["2027-05-13","",0],["2027-05-14","",0],["2027-05-15","Commencement Ceremony for II year MBA- Anna, WMSE, UT and NKU",1],["2027-05-16","",1],["2027-05-17","",0],["2027-05-18","",0],["2027-05-19","",0],["2027-05-20","",0],["2027-05-21","",0]];
 
 const CATS = {
+  myexam:   {label:'My exam',   color:'var(--c-mine)'},
+  batch:    {label:'II MBA',    color:'var(--c-batch)'},
   holiday:  {label:'Holiday',   color:'var(--c-holiday)',   re:/holiday|holiay/i},
   exam:     {label:'Exam',      color:'var(--c-exam)',      re:/exam/i},
   placement:{label:'Placement', color:'var(--c-placement)', re:/placement|internship|\bgip\b|induction/i},
   event:    {label:'Event',     color:'var(--c-event)'}
 };
-const CAT_KEYS = ['holiday','exam','placement','event'];
+const CAT_KEYS = ['myexam','batch','holiday','exam','placement','event'];
+const BOARD_COL = {myexam:'#FF5FA2', batch:'#45C4EC', holiday:'#FF6B6B', exam:'#5B8DEF', placement:'#A67CF0', event:'#3FBFA5'};
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -666,6 +747,64 @@ const DAYS = RAW.map((r, i) => {
   return {i, key:r[0], d, dow:d.getDay(), text, shade:r[2], tags, cat:tags[0] || null, wknd:d.getDay()===0 || d.getDay()===6};
 });
 const BY_KEY = Object.fromEntries(DAYS.map(x => [x.key, x]));
+
+/* ================= PERSONAL OVERLAYS =================
+   MY_EXAMS — Semester III end-semester exams from the exam portal (MOHANKUMAR P · 25AA35).
+   BATCH    — "MBA II Year (2025-27) batch · Academic schedule for the year 2026-27", issued by the Director. */
+const EXAM_SLOT = {name:'Afternoon', start:[13,55], end:[17,5], label:'1:55 – 5:05 PM'};
+const MY_EXAMS = [
+  {date:'2026-11-23', code:'24GA03', short:'IAPM', title:'Investment Analysis and Portfolio Management'},
+  {date:'2026-11-24', code:'24GD03', short:'PM',   title:'Project Management'},
+  {date:'2026-12-01', code:'24GA04', short:'FD',   title:'Financial Derivatives'},
+  {date:'2026-12-03', code:'24GM32', short:'SM',   title:'Strategic Management'},
+  {date:'2026-12-04', code:'24VA04', short:'MFS',  title:'Marketing of Financial Services'}
+];
+const BATCH = [
+  ['2026-07-20','III','Semester III Project commences'],
+  ['2026-07-27','III','Board Room Simulation'], ['2026-07-28','III','Board Room Simulation'],
+  ['2026-07-29','III','Internship Poster Presentation'],
+  ['2026-07-30','III','Board Room Simulation'], ['2026-07-31','III','Board Room Simulation'], ['2026-08-01','III','Board Room Simulation'],
+  ['2026-09-24','III','Class Committee Meeting – I'],
+  ['2026-10-15','III','Project Interim Review'],
+  ['2026-10-29','III','Class Committee Meeting – II'],
+  ['2026-11-13','III','Project Viva Voce'],
+  ['2026-11-20','III','Last Working Day'],
+  ['2026-11-23','III','Semester Exams begin'],
+  ['2026-12-09','IV','Classes Start Date'],
+  ['2027-01-21','IV','Class Committee Meeting – I'],
+  ['2027-02-25','IV','Class Committee Meeting – II'],
+  ['2027-02-27','IV','Completion of Project'],
+  ['2027-03-25','IV','Last Working Day'],
+  ['2027-03-29','IV','Semester Exams begin'],
+  ['2027-05-15','IV','Graduation Day']
+];
+function mineTitle(m){ return m.kind === 'myexam' ? `My exam: ${m.short} — ${m.title}` : `II MBA: ${m.title}`; }
+DAYS.forEach(x => { x.mine = []; });
+MY_EXAMS.forEach(e => { const x = BY_KEY[e.date]; if(x) x.mine.push(Object.assign({kind:'myexam'}, e)); });
+BATCH.forEach(([k, sem, title]) => { const x = BY_KEY[k]; if(x) x.mine.push({kind:'batch', sem, title}); });
+DAYS.forEach(x => {
+  x.tags = ['myexam','batch'].filter(c => x.mine.some(m => m.kind === c)).concat(x.tags);
+  x.cat = x.tags[0] || null;
+  x.has = !!x.text || x.mine.length > 0;
+  x.headline = x.mine.map(mineTitle).concat(x.text ? [x.text] : []).join(' / ');
+  x.find = (x.headline + ' ' + x.mine.map(m => m.code || '').join(' ')).toLowerCase();
+});
+function baseTags(x){ return x.tags.filter(t => t !== 'myexam' && t !== 'batch'); }
+function examTimes(x){
+  const d = x.d;
+  return {s:new Date(d.getFullYear(), d.getMonth(), d.getDate(), EXAM_SLOT.start[0], EXAM_SLOT.start[1]),
+          e:new Date(d.getFullYear(), d.getMonth(), d.getDate(), EXAM_SLOT.end[0], EXAM_SLOT.end[1])};
+}
+function pinsHTML(x, opt){
+  if(!x.mine.length) return '';
+  opt = opt || {};
+  return `<div class="pins${opt.sm ? ' sm' : ''}">` + x.mine.map(m => m.kind === 'myexam'
+    ? `<div class="pin" style="--cc:var(--c-mine)"><span class="pk">My exam</span><span class="pt">${m.short} · ${esc(m.title)}<small>${m.code} · ${EXAM_SLOT.name} ${EXAM_SLOT.label}</small></span></div>`
+    : `<div class="pin" style="--cc:var(--c-batch)"><span class="pk">II MBA</span><span class="pt">${esc(m.title)}<small>Sem ${m.sem} · MBA II Year academic schedule</small></span></div>`).join('') + `</div>`;
+}
+function boardPins(x){
+  return x.mine.map(m => `<div class="tk-pin" style="--pc:${BOARD_COL[m.kind]}"><i>${m.kind === 'myexam' ? 'MY EXAM' : 'II MBA'}</i>${m.kind === 'myexam' ? `${m.short} · ${EXAM_SLOT.label}` : esc(m.title)}</div>`).join('');
+}
 const START = DAYS[0].d, END = DAYS[DAYS.length-1].d;
 const TOTAL_WEEKS = Math.floor(dayDiff(START, END) / 7) + 1;
 
@@ -678,21 +817,34 @@ function keySegment(t, kind){
 function catColor(x){ return x && x.cat ? CATS[x.cat].color : null; }
 
 /* Consecutive days with identical text collapse into one range ("21–23 Sep"). */
-function buildRanges(pred){
+function buildRanges(pred, field){
   const out = [];
   for(const x of DAYS){
     if(!pred(x)) continue;
-    const last = out[out.length-1];
-    if(last && last.text === x.text && x.i === last.end.i + 1){ last.end = x; last.days++; }
-    else out.push({start:x, end:x, text:x.text, days:1, cat:x.cat, tags:x.tags});
+    const last = out[out.length-1], t = x[field];
+    if(last && last.text === t && x.i === last.end.i + 1){ last.end = x; last.days++; }
+    else out.push({start:x, end:x, text:t, days:1, cat:x.cat, tags:x.tags});
   }
   return out;
 }
+/* Personal items as ranges (consecutive identical titles merge, e.g. Board Room Simulation). */
+function itemRanges(kind){
+  const out = [];
+  for(const x of DAYS) for(const m of x.mine){
+    if(m.kind !== kind) continue;
+    const last = out.filter(r => r.text === m.title).pop();
+    if(last && last.end.i === x.i - 1){ last.end = x; last.days++; }
+    else out.push({start:x, end:x, text:m.title, days:1, cat:kind, tags:[kind], item:m});
+  }
+  return out.sort((p, q) => p.start.i - q.start.i);
+}
 const RANGES = {
-  holiday:   buildRanges(x => x.tags.includes('holiday')),
-  exam:      buildRanges(x => x.tags.includes('exam')),
-  placement: buildRanges(x => x.tags.includes('placement')),
-  all:       buildRanges(x => !!x.text)
+  myexam:    itemRanges('myexam'),
+  batch:     itemRanges('batch'),
+  holiday:   buildRanges(x => x.tags.includes('holiday'), 'text'),
+  exam:      buildRanges(x => x.tags.includes('exam'), 'text'),
+  placement: buildRanges(x => x.tags.includes('placement'), 'text'),
+  all:       buildRanges(x => x.has, 'headline')
 };
 
 /* ================= TIME ================= */
@@ -778,7 +930,7 @@ function setRoll(el, str){
 
 /* ================= STATE ================= */
 const state = {
-  tab:'today', filter:'all', agMode:'all', kd:'holiday',
+  tab:'today', filter:'all', agMode:'all', kd:'myexam',
   vm:null, sel:null, sheetKey:null, agendaScrolled:false
 };
 function clampMonth(d){
@@ -802,7 +954,7 @@ function renderClock(){
 /* ================= TODAY: BOARD ================= */
 function nextEventAfter(key){
   const from = BY_KEY[key] ? BY_KEY[key].i + 1 : (T0 < START ? 0 : DAYS.length);
-  for(let i = from; i < DAYS.length; i++) if(DAYS[i].text) return DAYS[i];
+  for(let i = from; i < DAYS.length; i++) if(DAYS[i].has) return DAYS[i];
   return null;
 }
 function renderBoard(){
@@ -810,12 +962,15 @@ function renderBoard(){
   const td = BY_KEY[TKEY];
   const wkChip = PHASE === 'during' ? `Wk ${weekNo(T0)}` : PHASE === 'before' ? 'Pre-term' : 'Done';
   let sc = '#FFB020', glow = '#FFB020';
-  if(td && td.cat){ sc = CATS[td.cat].color; glow = td.cat === 'holiday' ? '#FF6B6B' : td.cat === 'exam' ? '#5B8DEF' : td.cat === 'placement' ? '#A67CF0' : '#3FBFA5'; }
+  if(td && td.cat){ sc = CATS[td.cat].color; glow = BOARD_COL[td.cat]; }
   else if(td && td.wknd){ sc = 'var(--c-weekend)'; glow = '#6FBF5B'; }
   document.getElementById('board').style.setProperty('--glow', glow);
 
   let textLine;
-  if(td && td.text) textLine = `<div class="tk-text">${fmtText(td.text)}</div>${td.tags.length ? `<div class="tk-tags">${ctags(td.tags)}</div>` : ''}`;
+  if(td && td.has){
+    const bt = baseTags(td);
+    textLine = boardPins(td) + (td.text ? `<div class="tk-text">${fmtText(td.text)}</div>` : '') + (bt.length ? `<div class="tk-tags">${ctags(bt)}</div>` : '');
+  }
   else if(td) textLine = `<div class="tk-text dim">${td.wknd ? 'Nothing on the calendar — enjoy the weekend' : 'No events listed for today'}</div>`;
   else textLine = `<div class="tk-text dim">${PHASE === 'before' ? `Academic year begins ${shortDate(START)}` : 'The 2026–27 academic year has concluded'}</div>`;
 
@@ -832,13 +987,15 @@ function renderBoard(){
   const nx = nextEventAfter(TKEY);
   let right;
   if(nx){
+    const bt = baseTags(nx);
     right = `<div class="tk-col tk-next glow" style="--sc:${CATS[nx.cat].color}">
       <div class="tk-label"><span class="tk-arrow">▸</span>Next up<span class="tk-chip" data-b="nextChip"></span></div>
       <button class="tk-body" onclick="openSheet('${nx.key}')">
         <div class="tk-main">${nx.d.getDate()}<small>${MON[nx.d.getMonth()].toUpperCase()}</small></div>
         <div class="tk-name">${DOWL[nx.dow]} <i>· ${relDays(dayDiff(T0, nx.d)).toLowerCase()}</i></div>
-        <div class="tk-text">${fmtText(nx.text)}</div>
-        <div class="tk-tags">${ctags(nx.tags)}</div>
+        ${boardPins(nx)}
+        ${nx.text ? `<div class="tk-text">${fmtText(nx.text)}</div>` : ''}
+        ${bt.length ? `<div class="tk-tags">${ctags(bt)}</div>` : ''}
       </button>
     </div>`;
   } else {
@@ -886,58 +1043,145 @@ function renderTicker(){
 
 /* ================= TODAY: COUNTDOWNS ================= */
 const CD = {};
+function cdTargets(kind){
+  return RANGES[kind].map(r => {
+    if(kind === 'myexam'){ const t = examTimes(r.start); return {r, s:t.s, e:t.e}; }
+    return {r, s:r.start.d, e:new Date(r.end.d.getFullYear(), r.end.d.getMonth(), r.end.d.getDate() + 1)};
+  });
+}
+function cdState(t){
+  const n = now();
+  if(n >= t.s) return 'live';
+  return dayDiff(T0, new Date(t.s.getFullYear(), t.s.getMonth(), t.s.getDate())) === 0 ? 'today' : 'ahead';
+}
 function renderCountdowns(){
   const el = document.getElementById('cdRow');
-  el.innerHTML = ['holiday','exam'].map(kind => {
-    const list = RANGES[kind];
-    const nx = list.find(r => r.end.d >= T0);
-    const title = kind === 'holiday' ? 'Next holiday' : 'Next exam';
-    if(!nx){
+  const n = now();
+  el.innerHTML = ['myexam','holiday'].map(kind => {
+    const list = cdTargets(kind);
+    const idx = list.findIndex(t => t.e > n);
+    const title = kind === 'holiday' ? 'Next holiday' : 'My next exam';
+    if(idx < 0){
       CD[kind] = null;
       return `<div class="cd-tile none" style="--cc:${CATS[kind].color}"><div class="cd-k"><span class="cd-dot"></span>${title}</div>
-        <div class="cd-big"><b>—</b></div><div class="cd-l">None left this year</div></div>`;
+        <div class="cd-big"><b>—</b></div><div class="cd-l">${kind === 'holiday' ? 'None left this year' : 'All papers done'}</div></div>`;
     }
-    const prev = [...list].reverse().find(r => r.end.d < T0);
-    const from = prev ? new Date(prev.end.d.getTime() + DAY_MS) : START;
-    CD[kind] = {nx, from};
-    const seg = keySegment(nx.text, kind);
-    const label = kind === 'holiday' ? cleanHoliday(seg) : seg;
-    return `<button class="cd-tile" id="cd-${kind}" style="--cc:${CATS[kind].color}" onclick="openSheet('${nx.start.key}')">
+    const t = list[idx];
+    CD[kind] = {t, from: idx > 0 ? list[idx-1].e : START, state:null, days:null};
+    const r = t.r;
+    const label = kind === 'holiday' ? cleanHoliday(keySegment(r.text, 'holiday')) : `${r.item.short} · ${r.item.title}`;
+    const dateLine = kind === 'holiday' ? rangeLabel(r) : `${shortDate(r.start.d)} · ${EXAM_SLOT.label}`;
+    return `<button class="cd-tile" id="cd-${kind}" style="--cc:${CATS[kind].color}" onclick="openSheet('${r.start.key}')">
       <div class="cd-k"><span class="cd-dot"></span>${title}</div>
-      <div class="cd-big"><b data-cd="d">0</b><small data-cd="u">days</small></div>
+      <div class="cd-big"><b data-cd="d">0</b><small data-cd="u"></small></div>
       <div class="cd-hms" data-cd="hms"></div>
       <div class="cd-l">${esc(label)}</div>
-      <div class="cd-date">${rangeLabel(nx)}</div>
+      <div class="cd-date">${dateLine}</div>
       <div class="bar-wrap"><div class="bar"><i data-cd="bar"></i></div></div>
     </button>`;
   }).join('');
-  ['holiday','exam'].forEach(kind => {
-    const c = CD[kind]; if(!c) return;
-    const tile = document.getElementById('cd-' + kind);
-    const live = c.nx.start.d <= T0;
-    tile.classList.toggle('live', live);
-    const big = tile.querySelector('[data-cd="d"]');
-    if(live){ big.textContent = c.nx.days > 1 ? 'On' : 'Today'; tile.querySelector('[data-cd="u"]').textContent = c.nx.days > 1 ? `till ${shortDate(c.nx.end.d)}` : ''; }
-    else countUp(big, dayDiff(T0, c.nx.start.d), {dur:1100});
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const total = c.nx.start.d - c.from, done = now() - c.from;
-      tile.querySelector('[data-cd="bar"]').style.width = live ? '100%' : Math.min(100, Math.max(2, done/total*100)).toFixed(1) + '%';
-    }));
-  });
-  tickCountdowns();
+  tickCountdowns(true);
 }
-function tickCountdowns(){
-  ['holiday','exam'].forEach(kind => {
-    const c = CD[kind]; if(!c) return;
-    const tile = document.getElementById('cd-' + kind); if(!tile) return;
-    const hms = tile.querySelector('[data-cd="hms"]');
-    if(c.nx.start.d <= T0){ setRoll(hms, kind === 'holiday' ? 'ENJOY\u00a0THE\u00a0BREAK' : 'ALL\u00a0THE\u00a0BEST'); return; }
-    const secs = Math.max(0, Math.floor((c.nx.start.d - now()) / 1000));
+function tickCountdowns(first){
+  const n = now();
+  for(const kind of ['myexam','holiday']){
+    const c = CD[kind]; if(!c) continue;
+    const tile = document.getElementById('cd-' + kind); if(!tile) continue;
+    if(n >= c.t.e){ renderCountdowns(); renderMyExams(); return; }
+    const st = cdState(c.t);
+    const big = tile.querySelector('[data-cd="d"]'), unit = tile.querySelector('[data-cd="u"]'), hms = tile.querySelector('[data-cd="hms"]');
+    if(st !== c.state){
+      if(c.state !== null && kind === 'myexam') renderMyExams();
+      c.state = st; c.days = null;
+      tile.classList.toggle('live', st === 'live');
+      if(st === 'today'){ big.textContent = 'Today'; unit.textContent = ''; }
+      if(st === 'live'){
+        if(kind === 'myexam'){ big.textContent = 'Now'; unit.textContent = 'in progress'; }
+        else { big.textContent = c.t.r.days > 1 ? 'On' : 'Today'; unit.textContent = c.t.r.days > 1 ? `till ${shortDate(c.t.r.end.d)}` : ''; }
+      }
+      const bar = tile.querySelector('[data-cd="bar"]');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        bar.style.width = st === 'live' ? '100%' : Math.min(100, Math.max(2, (now() - c.from) / (c.t.s - c.from) * 100)).toFixed(1) + '%';
+      }));
+    }
+    const secs = Math.max(0, Math.floor(((st === 'live' ? c.t.e : c.t.s) - n) / 1000));
     const h = Math.floor(secs % 86400 / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
-    setRoll(hms, `${pad(h)}h\u00a0${pad(m)}m\u00a0${pad(s)}s`);
-  });
+    if(st === 'ahead'){
+      const d = Math.floor(secs / 86400);
+      if(d !== c.days){
+        if(c.days === null && first) countUp(big, d, {dur:1100}); else big.textContent = d;
+        unit.textContent = d === 1 ? 'day' : 'days'; c.days = d;
+      }
+      setRoll(hms, `${pad(h)}h ${pad(m)}m ${pad(s)}s`);
+    } else if(st === 'today'){
+      setRoll(hms, `in ${pad(Math.floor(secs/3600))}h ${pad(m)}m ${pad(s)}s`);
+    } else if(kind === 'myexam'){
+      setRoll(hms, `${pad(Math.floor(secs/3600))}h ${pad(m)}m left`);
+    } else {
+      setRoll(hms, 'ENJOY THE BREAK');
+    }
+  }
 }
-
+/* My Sem III exams card: all five papers, prep gaps between them, live state. */
+function renderMyExams(){
+  const el = document.getElementById('mxCard');
+  const n = now();
+  const list = cdTargets('myexam');
+  if(!list.length || n - list[list.length-1].e > 3*DAY_MS){ el.style.display = 'none'; return; }
+  el.style.display = '';
+  const nextIdx = list.findIndex(t => t.e > n);
+  const doneN = list.filter(t => t.e <= n).length;
+  let rows = '';
+  list.forEach((t, i) => {
+    const m = t.r.item, x = t.r.start;
+    const live = n >= t.s && n < t.e, done = n >= t.e;
+    const cls = done ? 'done' : live ? 'live' : i === nextIdx ? 'next' : '';
+    const dd = dayDiff(T0, x.d);
+    const w = done ? 'Done' : live ? 'Now' : dd === 0 ? 'Today' : dd === 1 ? 'Tomorrow' : `in ${dd}d`;
+    if(i > 0){
+      const gap = dayDiff(list[i-1].r.start.d, x.d) - 1;
+      rows += `<div class="mx-gap">${gap > 0 ? `${gap} day${gap === 1 ? '' : 's'} to prepare` : 'next day'}</div>`;
+    }
+    rows += `<button class="mx-row ${cls}" style="--i:${i}" onclick="openSheet('${x.key}')">
+      <div class="mx-d"><b>${x.d.getDate()}</b><span>${MON[x.d.getMonth()].toUpperCase()} · ${DOW[x.dow].toUpperCase()}</span></div>
+      <div class="mx-b"><div class="mx-t">${m.short}<em>${m.code}</em></div><div class="mx-s">${esc(m.title)}</div></div>
+      <div class="mx-w">${w}</div></button>`;
+  });
+  el.innerHTML = `<div class="card-h"><div class="t"><span class="mx-dot"></span>My Sem III exams</div><div class="m">${doneN}/${list.length} done</div></div>
+    <div class="mx-list">${rows}</div>
+    <div class="mx-foot"><span>Afternoon slot · <b>${EXAM_SLOT.label}</b></span><button class="pill-btn mine" onclick="downloadIcs()">+ Phone calendar</button></div>`;
+}
+/* Next item on the MBA II Year academic schedule. */
+function renderMilestone(){
+  const el = document.getElementById('msChip');
+  const r = RANGES.batch.find(r => r.end.d >= T0);
+  if(!r){ el.style.display = 'none'; return; }
+  el.style.display = '';
+  const dd = dayDiff(T0, r.start.d), live = r.start.d <= T0;
+  const cnt = live ? 'Today' : dd === 1 ? 'Tomorrow' : `${dd} days`;
+  el.innerHTML = `<div class="mc-date"><span class="m">${MON[r.start.d.getMonth()].toUpperCase()}</span><span class="dd">${r.start.d.getDate()}</span></div>
+    <div class="mc-body"><div class="k">Next for II MBA · Sem ${r.item.sem}</div><div class="l">${esc(r.text)}</div></div>
+    <span class="mc-count ${dd <= 14 ? 'hot' : ''}">${cnt}</span>`;
+}
+function openKd(k){ switchTab('dates'); setKd(k); }
+function downloadIcs(){
+  vib(8);
+  const stamp = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MK//PSGIM Calendar//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:My Sem III exams'];
+  cdTargets('myexam').forEach(t => {
+    const m = t.r.item;
+    L.push('BEGIN:VEVENT', `UID:${m.code}-${m.date}@psgim-calendar`, `DTSTAMP:${stamp(new Date())}`,
+      `DTSTART:${stamp(t.s)}`, `DTEND:${stamp(t.e)}`, `SUMMARY:${m.short} exam — ${m.title}`,
+      `DESCRIPTION:${m.code} · Semester III end-semester exam · Afternoon slot ${EXAM_SLOT.label}`, 'LOCATION:PSG Institute of Management',
+      'BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${m.short} exam tomorrow`,'TRIGGER:-PT18H','END:VALARM','END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  const url = URL.createObjectURL(new Blob([L.join('\r\n')], {type:'text/calendar'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'PSGIM-Sem-III-exams.ics';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+  toast('Downloaded — open the file to add all 5 exams');
+}
 /* ================= TODAY: WEEK STRIP ================= */
 function renderWeek(){
   const el = document.getElementById('weekCard');
@@ -948,9 +1192,9 @@ function renderWeek(){
   for(let i = 0; i < 7; i++){
     const d = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i), k = dkey(d), x = BY_KEY[k];
     const isToday = k === TKEY, past = d < T0;
-    if(x && x.text) evCount++;
-    const cls = ['wk-d', x && x.wknd ? 'we' : '', x && (x.shade === 3 || x.tags.includes('holiday')) ? 'hol' : '', isToday ? 'today' : '', past ? 'past' : ''].join(' ');
-    const dots = x ? x.tags.map(t => `<i style="--cc:${CATS[t].color}"></i>`).join('') : '';
+    if(x && x.has) evCount++;
+    const cls = ['wk-d', x && x.wknd ? 'we' : '', x && (x.shade === 3 || x.tags.includes('holiday')) ? 'hol' : '', x && x.tags.includes('myexam') ? 'mine' : '', isToday ? 'today' : '', past ? 'past' : ''].join(' ');
+    const dots = x ? x.tags.slice(0, 3).map(t => `<i style="--cc:${CATS[t].color}"></i>`).join('') : '';
     html += `<button class="${cls}" style="--i:${i}" ${x ? `onclick="openSheet('${k}')"` : 'disabled'}>
       <span class="dn">${DOW[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="dots">${dots}</span></button>`;
   }
@@ -959,7 +1203,6 @@ function renderWeek(){
     <div class="wk">${html}</div>
     <div class="wk-foot"><span><b>${evCount}</b> of 7 days with events</span><span>Tap a day for details</span></div>`;
 }
-
 /* ================= TODAY: YEAR PROGRESS ================= */
 function renderYear(){
   const el = document.getElementById('yearCard');
@@ -969,7 +1212,8 @@ function renderYear(){
   const future = DAYS.filter(x => x.d >= T0);
   const working = future.filter(x => !x.wknd && !x.tags.includes('holiday') && x.shade !== 3).length;
   const hols = RANGES.holiday.filter(r => r.end.d >= T0).length;
-  const exams = future.filter(x => x.tags.includes('exam')).length;
+  const n = now();
+  const mineLeft = cdTargets('myexam').filter(t => t.e > n).length;
   let months = '', ticks = '';
   for(let m = new Date(START.getFullYear(), START.getMonth(), 1); m <= END; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)){
     const mid = new Date(m.getFullYear(), m.getMonth(), 15);
@@ -978,7 +1222,9 @@ function renderYear(){
     months += `<span class="${cur ? 'cur' : ''}" style="left:${pos}%">${MON[m.getMonth()][0]}</span>`;
     if(m > START) ticks += `<span class="yr-tick" style="left:${(m - START) / span * 100}%"></span>`;
   }
-  const holDots = RANGES.holiday.map(r => `<span class="yr-hol ${r.end.d < T0 ? 'done' : ''}" style="left:${(r.start.d - START + DAY_MS/2) / span * 100}%"></span>`).join('');
+  const pos = x => (x.d - START + DAY_MS/2) / span * 100;
+  const holDots = RANGES.holiday.map(r => `<span class="yr-hol ${r.end.d < T0 ? 'done' : ''}" style="left:${pos(r.start)}%"></span>`).join('')
+    + RANGES.myexam.map(r => `<span class="yr-ex ${r.end.d < T0 ? 'done' : ''}" style="left:${pos(r.start)}%"></span>`).join('');
   const status = PHASE === 'during' ? `Day ${dayN} of ${DAYS.length} · ${DAYS.length - dayN} days to go` : PHASE === 'before' ? `Starts ${shortDate(START)}` : `Ended ${shortDate(END)}`;
   el.innerHTML = `<div class="yr-top">
       <div><div class="t1">Academic year</div><div class="t2">${status}</div></div>
@@ -989,7 +1235,7 @@ function renderYear(){
     <div class="stats">
       <div class="stat"><b data-n="${working}">0</b><span>Working days left</span></div>
       <div class="stat" style="--cc:var(--c-holiday)"><b data-n="${hols}">0</b><span>Holidays to come</span></div>
-      <div class="stat" style="--cc:var(--c-exam)"><b data-n="${exams}">0</b><span>Exam days ahead</span></div>
+      <div class="stat" style="--cc:var(--c-mine)"><b data-n="${mineLeft}">0</b><span>My exams left</span></div>
     </div>`;
   countUp(document.getElementById('yrPct'), Math.round(pct), {dur:1400});
   el.querySelectorAll('[data-n]').forEach(b => countUp(b, +b.dataset.n, {dur:1100}));
@@ -998,7 +1244,6 @@ function renderYear(){
     document.getElementById('yrKnob').style.left = pct + '%';
   }));
 }
-
 /* ================= TODAY: COMING UP ================= */
 function renderUpcoming(){
   const el = document.getElementById('upcoming');
@@ -1050,19 +1295,22 @@ function renderMonth(dir){
 function renderMonthHead(dir){
   const vm = state.vm, y = vm.getFullYear(), m = vm.getMonth();
   const inM = DAYS.filter(x => x.d.getMonth() === m && x.d.getFullYear() === y);
-  const ev = inM.filter(x => x.text).length, ho = inM.filter(x => x.tags.includes('holiday')).length, ex = inM.filter(x => x.tags.includes('exam')).length;
+  const cnt = c => inM.filter(x => x.tags.includes(c)).length;
+  const ev = inM.filter(x => x.has).length, ho = cnt('holiday'), me = cnt('myexam'), ba = cnt('batch');
+  const parts = [];
+  if(me) parts.push(`<b class="pk-mine">${me}</b> my exam${me === 1 ? '' : 's'}`);
+  if(ba) parts.push(`<b class="pk-batch">${ba}</b> II MBA`);
+  parts.push(`<b>${ev}</b> event days`, `<b>${ho}</b> holiday${ho === 1 ? '' : 's'}`);
   const t = document.getElementById('mTitle');
-  t.innerHTML = `<div class="mt">${MONTHS[m]} <span>${y}</span></div>
-    <div class="ms"><b>${ev}</b> event days · <b>${ho}</b> holiday${ho === 1 ? '' : 's'} · <b>${ex}</b> exam day${ex === 1 ? '' : 's'}</div>`;
+  t.innerHTML = `<div class="mt">${MONTHS[m]} <span>${y}</span></div><div class="ms">${parts.join(' · ')}</div>`;
   t.classList.remove('swap'); void t.offsetWidth; if(dir) t.classList.add('swap');
   const {lo, hi} = monthBounds();
   document.getElementById('mPrev').disabled = vm <= lo;
   document.getElementById('mNext').disabled = vm >= hi;
   const isCur = T0.getMonth() === m && T0.getFullYear() === y;
   document.getElementById('mToday').innerHTML = (!isCur && PHASE === 'during') ? `<button class="pill-btn" onclick="monthToToday()"><span class="live-dot"></span>Back to ${MON[T0.getMonth()]}</button>` : '';
-  // month position dots
-  let dots = '', i = 0;
-  for(let d = new Date(lo); d <= hi; d = new Date(d.getFullYear(), d.getMonth() + 1, 1), i++) dots += `<i class="${d.getTime() === vm.getTime() ? 'on' : ''}"></i>`;
+  let dots = '';
+  for(let d = new Date(lo); d <= hi; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) dots += `<i class="${d.getTime() === vm.getTime() ? 'on' : ''}"></i>`;
   document.getElementById('calDots').innerHTML = dots;
 }
 function renderMonthGrid(dir, quiet){
@@ -1077,18 +1325,20 @@ function renderMonthGrid(dir, quiet){
     const cls = ['cell'];
     if(other) cls.push('other');
     else if(!x) cls.push('nodata');
+    let mark = '';
     if(x){
       if(x.shade === 3 || x.tags.includes('holiday')) cls.push('hol');
       else if(x.shade === 2) cls.push('we2');
       else if(x.shade === 1 || x.wknd) cls.push('we');
+      if(x.tags.includes('myexam') && !other){ cls.push('mine'); mark = '<span class="mk"></span>'; }
       if(d < T0) cls.push('past');
       if(state.filter !== 'all' && !x.tags.includes(state.filter)) cls.push('dim');
     }
     if(k === TKEY && !other) cls.push('today');
     if(k === state.sel && !other) cls.push('sel');
-    const dots = x && !other ? x.tags.map(t => `<i style="--cc:${CATS[t].color}"></i>`).join('') : '';
-    html += `<button class="${cls.join(' ')}" style="--i:${quiet ? 0 : i}" data-k="${k}" ${x && !other ? '' : 'tabindex="-1"'} aria-label="${shortDate(d)}${x && x.text ? ': ' + esc(x.text) : ''}">
-      <span class="cn">${d.getDate()}</span><span class="cd">${dots}</span></button>`;
+    const dots = x && !other ? x.tags.slice(0, 3).map(t => `<i style="--cc:${CATS[t].color}"></i>`).join('') : '';
+    html += `<button class="${cls.join(' ')}" style="--i:${quiet ? 0 : i}" data-k="${k}" ${x && !other ? '' : 'tabindex="-1"'} aria-label="${shortDate(d)}${x && x.has ? ': ' + esc(x.headline) : ''}">
+      ${mark}<span class="cn">${d.getDate()}</span><span class="cd">${dots}</span></button>`;
   }
   const g = document.getElementById('calGrid');
   g.style.transition = 'none'; g.style.transform = ''; g.style.opacity = '';
@@ -1113,26 +1363,28 @@ function renderDetail(anim){
   const diff = dayDiff(T0, x.d);
   const sc = x.cat ? CATS[x.cat].color : x.wknd ? 'var(--c-weekend)' : 'var(--line-strong)';
   el.style.setProperty('--sc', sc);
+  const bt = baseTags(x);
   el.innerHTML = `<div class="dt-in">
     <div class="dt-head">
       <div class="dt-date"><b>${x.d.getDate()}</b><span>${MON[x.d.getMonth()].toUpperCase()}</span></div>
       <div class="dt-t"><div class="a">${DOWL[x.dow]}</div><div class="b ${diff >= 0 && diff <= 7 ? 'hot' : ''}">${relDays(diff)}${x.wknd ? ' · weekend' : ''}</div></div>
       <button class="dt-share" onclick="shareDay('${x.key}')" aria-label="Share this day"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12"/></svg></button>
     </div>
-    <div class="dt-text ${x.text ? '' : 'dim'}">${x.text ? fmtText(x.text) : (x.wknd ? 'Weekend — nothing on the calendar.' : 'No events listed.')}</div>
-    ${x.tags.length ? `<div class="dt-tags">${ctags(x.tags)}</div>` : ''}
+    ${x.mine.length ? `<div style="margin-top:11px">${pinsHTML(x)}</div>` : ''}
+    ${x.text || !x.has ? `<div class="dt-text ${x.text ? '' : 'dim'}">${x.text ? fmtText(x.text) : (x.wknd ? 'Weekend — nothing on the calendar.' : 'No events listed.')}</div>` : ''}
+    ${bt.length ? `<div class="dt-tags">${ctags(bt)}</div>` : ''}
   </div>`;
   el.classList.remove('swap'); if(anim){ void el.offsetWidth; el.classList.add('swap'); }
 }
 function renderMonthList(){
   const vm = state.vm, y = vm.getFullYear(), m = vm.getMonth();
-  let list = DAYS.filter(x => x.text && x.d.getMonth() === m && x.d.getFullYear() === y);
+  let list = DAYS.filter(x => x.has && x.d.getMonth() === m && x.d.getFullYear() === y);
   if(state.filter !== 'all') list = list.filter(x => x.tags.includes(state.filter));
   document.getElementById('mlTitle').innerHTML = `In ${MONTHS[m]} <span class="n">${list.length} day${list.length === 1 ? '' : 's'}</span>`;
   document.getElementById('mList').innerHTML = list.length ? `<div class="mlist">${list.map(x =>
     `<button class="ml-row ${x.key === state.sel ? 'sel' : ''} ${x.d < T0 ? 'past' : ''}" data-k="${x.key}" style="--cc:${CATS[x.cat].color}" onclick="openSheet('${x.key}')">
-      <div class="ml-d"><b>${x.d.getDate()}</b><span>${DOW[x.dow]}</span></div><div class="ml-t">${fmtText(x.text)}</div></button>`).join('')}</div>`
-    : `<div class="empty-note">${state.filter === 'all' ? 'Nothing listed this month.' : `No ${CATS[state.filter].label.toLowerCase()} days this month.`}</div>`;
+      <div class="ml-d"><b>${x.d.getDate()}</b><span>${DOW[x.dow]}</span></div><div class="ml-t">${fmtText(x.headline)}</div></button>`).join('')}</div>`
+    : `<div class="empty-note">${state.filter === 'all' ? 'Nothing listed this month.' : `No ${CATS[state.filter].label} days this month.`}</div>`;
 }
 let monthBusy = false;
 function shiftMonth(n){
@@ -1218,19 +1470,19 @@ function renderAgenda(){
   const ql = q.toLowerCase();
   let list = DAYS.filter(x => {
     if(state.filter !== 'all' && !x.tags.includes(state.filter)) return false;
-    if(ql) return x.text.toLowerCase().includes(ql) || shortDate(x.d).toLowerCase().includes(ql) || MONTHS[x.d.getMonth()].toLowerCase().includes(ql);
-    if(state.agMode === 'events') return !!x.text || x.key === TKEY;
+    if(ql) return x.find.includes(ql) || shortDate(x.d).toLowerCase().includes(ql) || MONTHS[x.d.getMonth()].toLowerCase().includes(ql);
+    if(state.agMode === 'events') return x.has || x.key === TKEY;
     return true;
   });
-  const evDays = list.filter(x => x.text).length;
+  const evDays = list.filter(x => x.has).length;
   document.getElementById('agCount').textContent = (ql || state.filter !== 'all') ? `${list.length} match${list.length === 1 ? '' : 'es'}` : `${evDays} event days`;
   if(!list.length){
-    el.innerHTML = `<div class="empty-note">No days match ${q ? `“${esc(q)}”` : 'this filter'}.<br>Try “exam”, “holiday”, “viva” or a month name.</div>`;
+    el.innerHTML = `<div class="empty-note">No days match ${q ? `“${esc(q)}”` : 'this filter'}.<br>Try “exam”, “holiday”, “viva”, a course code or a month name.</div>`;
     hookAgendaObservers(); return;
   }
   let html = '', curM = -1, open = false, todayLinePlaced = false;
   const monthCount = {};
-  list.forEach(x => { const mk = x.d.getFullYear()*12 + x.d.getMonth(); monthCount[mk] = (monthCount[mk] || 0) + (x.text ? 1 : 0); });
+  list.forEach(x => { const mk = x.d.getFullYear()*12 + x.d.getMonth(); monthCount[mk] = (monthCount[mk] || 0) + (x.has ? 1 : 0); });
   list.forEach(x => {
     const mk = x.d.getFullYear()*12 + x.d.getMonth();
     if(mk !== curM){
@@ -1243,13 +1495,16 @@ function renderAgenda(){
     }
     if(x.key === TKEY) todayLinePlaced = true;
     const isToday = x.key === TKEY, past = x.d < T0;
-    const cls = ['ag-row', 'rv', x.text ? '' : 'empty',
+    const cls = ['ag-row', 'rv', x.has ? '' : 'empty',
       x.shade === 3 || x.tags.includes('holiday') ? 'hol' : x.shade === 2 ? 'we2' : (x.shade === 1 || x.wknd) ? 'we' : '',
-      isToday ? 'today' : '', past ? 'past' : ''].join(' ');
-    const body = x.text ? `<span class="cdot" style="--cc:${CATS[x.cat].color}"></span>${fmtText(x.text, q)}` : (x.wknd ? 'Weekend' : 'No events');
+      x.tags.includes('myexam') ? 'mine' : '', isToday ? 'today' : '', past ? 'past' : ''].join(' ');
+    const bc = baseTags(x)[0] || 'event';
+    let body;
+    if(x.has) body = pinsHTML(x, {sm:true}) + (x.text ? `<div class="ag-t"><span class="cdot" style="--cc:${CATS[bc].color}"></span>${fmtText(x.text, q)}</div>` : '');
+    else body = `<div class="ag-t">${x.wknd ? 'Weekend' : 'No events'}</div>`;
     html += `<button class="${cls}" data-k="${x.key}" onclick="openSheet('${x.key}')">
       <div class="ag-d"><b>${x.d.getDate()}</b><span>${DOW[x.dow]}</span></div>
-      <div class="ag-b"><div class="ag-t">${body}</div></div>
+      <div class="ag-b">${body}</div>
       ${isToday ? '<span class="tag now">TODAY</span>' : ''}</button>`;
   });
   if(open) html += `</div>`;
@@ -1283,48 +1538,60 @@ function agendaToToday(smooth){
 }
 
 /* ================= KEY DATES ================= */
+const KD_TABS = [['myexam','My exams'],['batch','II MBA'],['holiday','Holidays'],['exam','Exams'],['placement','Placement']];
 function setKd(k){
   state.kd = k; vib();
-  const seg = document.getElementById('kdSeg');
-  const idx = ['holiday','exam','placement'].indexOf(k);
-  seg.style.setProperty('--k', idx);
-  seg.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', i === idx));
-  renderKdList();
+  renderKdTabs(); renderKdList();
+}
+function renderKdTabs(){
+  document.getElementById('kdTabs').innerHTML = KD_TABS.map(([k, l]) =>
+    `<button class="chip ${state.kd === k ? 'active' : ''}" style="--cc:${CATS[k].color}" onclick="setKd('${k}')"><span class="sw"></span>${l}<em>${RANGES[k].length}</em></button>`).join('');
 }
 function renderKdCard(){
   const el = document.getElementById('kdCard');
-  const h = RANGES.holiday, e = RANGES.exam, p = RANGES.placement;
+  const n = now();
+  const mine = cdTargets('myexam'), b = RANGES.batch, h = RANGES.holiday;
   const left = list => list.filter(r => r.end.d >= T0).length;
   el.innerHTML = `<div class="card-h"><div class="t">Key dates</div><div class="m">${shortDate(START)} – ${shortDate(END)}</div></div>
     <div class="stats" style="margin-top:0">
-      <div class="stat" style="--cc:var(--c-holiday)"><b data-n="${left(h)}">0</b><span>of ${h.length} holidays left</span></div>
-      <div class="stat" style="--cc:var(--c-exam)"><b data-n="${left(e)}">0</b><span>of ${e.length} exam spells left</span></div>
-      <div class="stat" style="--cc:var(--c-placement)"><b data-n="${left(p)}">0</b><span>of ${p.length} placement items</span></div>
+      <button class="stat" style="--cc:var(--c-mine); text-align:left" onclick="setKd('myexam')"><b data-n="${mine.filter(t => t.e > n).length}">0</b><span>of ${mine.length} my exams left</span></button>
+      <button class="stat" style="--cc:var(--c-batch); text-align:left" onclick="setKd('batch')"><b data-n="${left(b)}">0</b><span>of ${b.length} II MBA dates left</span></button>
+      <button class="stat" style="--cc:var(--c-holiday); text-align:left" onclick="setKd('holiday')"><b data-n="${left(h)}">0</b><span>of ${h.length} holidays left</span></button>
     </div>`;
   el.querySelectorAll('[data-n]').forEach(b => countUp(b, +b.dataset.n));
 }
 function renderKdList(){
   const el = document.getElementById('kdList');
-  const list = RANGES[state.kd];
-  const nextIdx = list.findIndex(r => r.start.d > T0);
-  let html = '<div class="tl">', curM = -1, todayPlaced = false;
+  const kd = state.kd;
+  const list = RANGES[kd];
+  const n = now();
+  const isDone = r => kd === 'myexam' ? examTimes(r.end).e <= n : r.end.d < T0;
+  const nextIdx = list.findIndex(r => !isDone(r) && r.start.d > T0);
+  let head = '';
+  if(kd === 'myexam') head = `<div class="kd-note" style="--cc:var(--c-mine)"><div><b>Semester III end-semester exams</b><span>Afternoon slot · ${EXAM_SLOT.label} · roll 25AA35</span><span class="warn">The college calendar file says II MBA exams begin 16 Nov — your exam card and the Director's schedule both say 23 Nov.</span></div><button class="pill-btn mine" onclick="downloadIcs()">+ Phone calendar</button></div>`;
+  if(kd === 'batch') head = `<div class="kd-note" style="--cc:var(--c-batch)"><div><b>MBA II Year (2025–27) batch</b><span>Academic schedule 2026–27, issued by the Director</span></div></div>`;
+  let html = head + '<div class="tl">', curM = -1, todayPlaced = false;
   list.forEach((r, i) => {
     const mk = r.start.d.getFullYear()*12 + r.start.d.getMonth();
-    if(!todayPlaced && r.end.d >= T0 && PHASE === 'during'){
+    if(!todayPlaced && !isDone(r) && PHASE === 'during'){
       todayPlaced = true;
       if(i > 0) html += `<div class="tl-today" id="kdToday">TODAY · ${shortDate(T0).toUpperCase()}</div>`;
     }
     if(mk !== curM){ html += `<div class="tl-month">${MONTHS[r.start.d.getMonth()]} ${r.start.d.getFullYear()}</div>`; curM = mk; }
-    const live = r.start.d <= T0 && r.end.d >= T0;
+    const done = isDone(r);
+    const live = !done && r.start.d <= T0 && r.end.d >= T0;
     const diff = dayDiff(T0, r.start.d);
-    const cls = r.end.d < T0 ? 'done' : live ? 'live' : i === nextIdx ? 'next' : diff <= 14 ? 'soon' : '';
-    const when = live ? (r.days > 1 ? `On now · till ${shortDate(r.end.d)}` : 'Today') : r.end.d < T0 ? relDays(dayDiff(T0, r.end.d)) : relDays(diff);
-    const label = state.kd === 'holiday' ? cleanHoliday(keySegment(r.text, 'holiday')) : r.text;
-    const weekendNote = state.kd === 'holiday' && r.days === 1 && r.start.wknd ? ' · falls on a weekend' : '';
-    html += `<button class="tl-item ${cls}" style="--cc:${CATS[state.kd].color}; --i:${Math.min(i, 12)}" onclick="openSheet('${r.start.key}')">
+    const cls = done ? 'done' : live ? 'live' : i === nextIdx ? 'next' : diff <= 14 ? 'soon' : '';
+    let when = live ? (r.days > 1 ? `On now · till ${shortDate(r.end.d)}` : 'Today') : done ? relDays(dayDiff(T0, r.end.d)) : relDays(diff);
+    if(done && kd === 'myexam') when = 'Done ✓';
+    let label = r.text, extra = '';
+    if(kd === 'holiday'){ label = cleanHoliday(keySegment(r.text, 'holiday')); if(r.days === 1 && r.start.wknd) extra = ' · falls on a weekend'; }
+    if(kd === 'myexam'){ label = `${r.item.short} · ${r.item.title}`; extra = ` · ${r.item.code} · ${EXAM_SLOT.label}`; }
+    if(kd === 'batch') extra = ` · Sem ${r.item.sem}`;
+    html += `<button class="tl-item ${cls}" style="--cc:${CATS[kd].color}; --i:${Math.min(i, 12)}" onclick="openSheet('${r.start.key}')">
       <span class="tl-node"></span>
       <div class="tl-date"><b>${r.start.d.getDate()}${r.days > 1 ? `<small>–${r.end.d.getDate()}</small>` : ''}</b><span>${DOW[r.start.dow]}${r.days > 1 ? '–' + DOW[r.end.dow] : ''}</span></div>
-      <div class="tl-body"><div class="tl-label">${fmtText(label)}</div><div class="tl-when">${when}${r.days > 1 ? ` · ${r.days} days` : ''}${weekendNote}</div></div>
+      <div class="tl-body"><div class="tl-label">${fmtText(label)}</div><div class="tl-when">${when}${r.days > 1 ? ` · ${r.days} days` : ''}${extra}</div></div>
     </button>`;
   });
   html += '</div>';
@@ -1332,12 +1599,17 @@ function renderKdList(){
 }
 function renderNavBadge(){
   const b = document.getElementById('navBadge');
-  const nx = RANGES.holiday.find(r => r.start.d >= T0);
-  const d = nx ? dayDiff(T0, nx.start.d) : null;
-  if(d !== null && d <= 7){ b.style.display = 'flex'; b.textContent = d === 0 ? '!' : d; b.title = `Holiday ${relDays(d)}`; }
-  else b.style.display = 'none';
+  const n = now();
+  const ex = cdTargets('myexam').find(t => t.e > n);
+  const exD = ex ? dayDiff(T0, ex.r.start.d) : null;
+  const ho = RANGES.holiday.find(r => r.start.d >= T0);
+  const hoD = ho ? dayDiff(T0, ho.start.d) : null;
+  if(exD !== null && exD <= 7){
+    b.style.display = 'flex'; b.style.background = 'var(--c-mine)'; b.textContent = exD === 0 ? '!' : exD; b.title = `Exam ${relDays(exD)}`;
+  } else if(hoD !== null && hoD <= 7){
+    b.style.display = 'flex'; b.style.background = ''; b.textContent = hoD === 0 ? '!' : hoD; b.title = `Holiday ${relDays(hoD)}`;
+  } else b.style.display = 'none';
 }
-
 /* ================= BOTTOM SHEET ================= */
 function openSheet(k){
   if(!BY_KEY[k]) return;
@@ -1362,15 +1634,16 @@ function renderSheet(dir){
   if(x.wknd) extra.push(`<span class="ctag" style="--cc:var(--c-weekend)">Weekend</span>`);
   if(x.shade === 3 && !x.tags.includes('holiday')) extra.push(`<span class="ctag" style="--cc:var(--c-holiday)">Marked red</span>`);
   if(x.key === TKEY) extra.unshift(`<span class="ctag" style="--cc:var(--amber)">Today</span>`);
-  const tags = ctags(x.tags) + extra.join('');
+  const tags = ctags(baseTags(x)) + extra.join('');
   document.getElementById('sheetContent').innerHTML = `<div class="sh-in ${dir > 0 ? 'from-r' : dir < 0 ? 'from-l' : ''}">
     <div class="sh-head">
       <div class="sh-date"><b>${x.d.getDate()}</b><span>${MON[x.d.getMonth()].toUpperCase()}</span></div>
       <div class="sh-title"><div class="a">${DOWL[x.dow]}</div><div class="b ${diff >= 0 && diff <= 7 ? 'hot' : ''}">${x.d.getDate()} ${MONTHS[x.d.getMonth()]} ${x.d.getFullYear()} · ${relDays(diff)}</div></div>
       <button class="sh-close" onclick="closeSheet()" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
+    ${x.mine.length ? `<div style="margin-top:14px">${pinsHTML(x)}</div>` : ''}
     ${tags ? `<div class="sh-tags">${tags}</div>` : ''}
-    <div class="sh-text ${x.text ? '' : 'dim'}">${x.text ? fmtText(x.text) : (x.wknd ? 'Weekend — nothing on the calendar.' : 'No events listed for this day.')}</div>
+    ${x.text || !x.has ? `<div class="sh-text ${x.text ? '' : 'dim'}">${x.text ? fmtText(x.text) : (x.wknd ? 'Weekend — nothing on the calendar.' : 'No events listed for this day.')}</div>` : ''}
     <div class="sh-actions">
       <button class="sh-btn" onclick="sheetStep(-1)" ${x.i === 0 ? 'disabled' : ''} aria-label="Previous day"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
       <button class="sh-btn" onclick="sheetToMonth()"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17"/></svg>In month</button>
@@ -1423,7 +1696,9 @@ document.addEventListener('keydown', e => {
 /* ================= SHARE / TOAST ================= */
 function shareDay(k){
   const x = BY_KEY[k];
-  const text = `${DOWL[x.dow]}, ${x.d.getDate()} ${MONTHS[x.d.getMonth()]} ${x.d.getFullYear()}\n${x.text || 'No events listed'}\n— PSGIM Academic Calendar 2026–27`;
+  const lines = x.mine.map(m => m.kind === 'myexam' ? `My exam: ${m.short} — ${m.title} (${m.code}), ${EXAM_SLOT.label}` : `II MBA: ${m.title}`);
+  if(x.text) lines.push(x.text);
+  const text = `${DOWL[x.dow]}, ${x.d.getDate()} ${MONTHS[x.d.getMonth()]} ${x.d.getFullYear()}\n${lines.join('\n') || 'No events listed'}\n— PSGIM Academic Calendar 2026–27`;
   vib(8);
   if(navigator.share){ navigator.share({title:'PSGIM Academic Calendar', text, url:location.href.split('?')[0]}).catch(() => {}); return; }
   const done = () => toast('Copied to clipboard');
@@ -1453,8 +1728,8 @@ function switchTab(t, keepScroll){
   document.getElementById('navInd').style.setProperty('--k', to);
   document.getElementById('jumpFab').classList.remove('show');
   try { history.replaceState(null, '', location.pathname + location.search + '#' + t); } catch(e){}
-  if(t === 'today' && !same){ renderYear(); renderCountdowns(); }
-  if(t === 'dates'){ renderKdCard(); renderKdList(); }
+  if(t === 'today' && !same){ renderYear(); renderCountdowns(); renderMyExams(); }
+  if(t === 'dates'){ renderKdCard(); renderKdTabs(); renderKdList(); }
   if(t === 'agenda'){
     hookAgendaObservers();
     if(!state.agendaScrolled){ state.agendaScrolled = true; requestAnimationFrame(() => agendaToToday(false)); return; }
@@ -1484,8 +1759,8 @@ function measureHeader(){
 /* ================= INIT / REFRESH ================= */
 function renderAll(){
   renderHeader(); renderClock();
-  renderBoard(); renderTicker(); renderCountdowns(); renderWeek(); renderYear(); renderUpcoming();
-  renderLegends(); renderMonth(null); renderAgenda(); renderKdCard(); renderKdList(); renderNavBadge();
+  renderBoard(); renderTicker(); renderCountdowns(); renderMyExams(); renderMilestone(); renderWeek(); renderYear(); renderUpcoming();
+  renderLegends(); renderMonth(null); renderAgenda(); renderKdCard(); renderKdTabs(); renderKdList(); renderNavBadge();
 }
 function secondTick(){
   if(document.hidden) return;
